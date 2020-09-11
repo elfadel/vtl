@@ -1,0 +1,19 @@
+CC = gcc
+CFLAGS = -Wall -g
+TARGETS = client server
+
+all: $(TARGETS)
+
+client: client.o common.o
+
+server: server.o common.o
+
+client.o: client.c common.h
+
+server.o: server.c common.h
+
+common.o: common.c common.h
+
+clean:
+	-rm $(TARGETS) *.o
+
