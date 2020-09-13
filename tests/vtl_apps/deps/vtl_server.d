@@ -70,6 +70,53 @@ vtl_server: vtl_server.c /usr/include/stdc-predef.h /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/in.h \
  /usr/lib/gcc/x86_64-linux-gnu/7/include/stdint.h /usr/include/stdint.h \
  /usr/include/x86_64-linux-gnu/bits/wchar.h \
+ ../../service_api/../include/../../../nDPI/src/include/ndpi_api.h \
+ ../../service_api/../include/../../../nDPI/src/include/ndpi_main.h \
+ ../../service_api/../include/../../../nDPI/src/include/ndpi_includes.h \
+ /usr/include/ctype.h /usr/include/time.h \
+ /usr/include/x86_64-linux-gnu/bits/time.h \
+ /usr/include/x86_64-linux-gnu/bits/types/struct_tm.h \
+ /usr/include/x86_64-linux-gnu/bits/types/struct_itimerspec.h \
+ /usr/lib/gcc/x86_64-linux-gnu/7/include-fixed/limits.h \
+ /usr/lib/gcc/x86_64-linux-gnu/7/include-fixed/syslimits.h \
+ /usr/include/limits.h /usr/include/x86_64-linux-gnu/bits/posix1_lim.h \
+ /usr/include/x86_64-linux-gnu/bits/local_lim.h \
+ /usr/include/linux/limits.h \
+ /usr/include/x86_64-linux-gnu/bits/posix2_lim.h \
+ /usr/include/x86_64-linux-gnu/sys/param.h /usr/include/signal.h \
+ /usr/include/x86_64-linux-gnu/bits/signum.h \
+ /usr/include/x86_64-linux-gnu/bits/signum-generic.h \
+ /usr/include/x86_64-linux-gnu/bits/types/sig_atomic_t.h \
+ /usr/include/x86_64-linux-gnu/bits/types/siginfo_t.h \
+ /usr/include/x86_64-linux-gnu/bits/types/__sigval_t.h \
+ /usr/include/x86_64-linux-gnu/bits/siginfo-arch.h \
+ /usr/include/x86_64-linux-gnu/bits/siginfo-consts.h \
+ /usr/include/x86_64-linux-gnu/bits/types/sigval_t.h \
+ /usr/include/x86_64-linux-gnu/bits/types/sigevent_t.h \
+ /usr/include/x86_64-linux-gnu/bits/sigevent-consts.h \
+ /usr/include/x86_64-linux-gnu/bits/sigaction.h \
+ /usr/include/x86_64-linux-gnu/bits/sigcontext.h \
+ /usr/include/x86_64-linux-gnu/bits/types/stack_t.h \
+ /usr/include/x86_64-linux-gnu/sys/ucontext.h \
+ /usr/include/x86_64-linux-gnu/bits/sigstack.h \
+ /usr/include/x86_64-linux-gnu/bits/ss_flags.h \
+ /usr/include/x86_64-linux-gnu/bits/types/struct_sigstack.h \
+ /usr/include/x86_64-linux-gnu/bits/sigthread.h \
+ /usr/include/x86_64-linux-gnu/bits/param.h /usr/include/linux/param.h \
+ /usr/include/x86_64-linux-gnu/asm/param.h \
+ /usr/include/asm-generic/param.h /usr/include/pthread.h \
+ /usr/include/sched.h /usr/include/x86_64-linux-gnu/bits/sched.h \
+ /usr/include/x86_64-linux-gnu/bits/cpu-set.h \
+ /usr/include/x86_64-linux-gnu/bits/setjmp.h /usr/include/arpa/inet.h \
+ /usr/include/x86_64-linux-gnu/sys/time.h /usr/include/netinet/tcp.h \
+ /usr/include/netinet/udp.h /usr/include/byteswap.h \
+ ../../service_api/../include/../../../nDPI/src/include/ndpi_define.h \
+ ../../service_api/../include/../../../nDPI/src/include/ndpi_config.h \
+ ../../service_api/../include/../../../nDPI/src/include/ndpi_protocol_ids.h \
+ ../../service_api/../include/../../../nDPI/src/include/ndpi_typedefs.h \
+ ../../service_api/../include/../../../nDPI/src/include/ndpi_api.h \
+ ../../service_api/../include/../../../nDPI/src/include/ndpi_protocols.h \
+ ../../service_api/../include/../../../nDPI/src/include/ndpi_main.h \
  ../../service_api/../include/./common/xdp_user_helpers.h \
  /usr/lib/gcc/x86_64-linux-gnu/7/include/stdbool.h \
  ../../service_api/../include/./common/xsk_user_helpers.h \
@@ -248,6 +295,118 @@ vtl_server: vtl_server.c /usr/include/stdc-predef.h /usr/include/stdio.h \
 /usr/include/stdint.h:
 
 /usr/include/x86_64-linux-gnu/bits/wchar.h:
+
+../../service_api/../include/../../../nDPI/src/include/ndpi_api.h:
+
+../../service_api/../include/../../../nDPI/src/include/ndpi_main.h:
+
+../../service_api/../include/../../../nDPI/src/include/ndpi_includes.h:
+
+/usr/include/ctype.h:
+
+/usr/include/time.h:
+
+/usr/include/x86_64-linux-gnu/bits/time.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/struct_tm.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/struct_itimerspec.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed/limits.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed/syslimits.h:
+
+/usr/include/limits.h:
+
+/usr/include/x86_64-linux-gnu/bits/posix1_lim.h:
+
+/usr/include/x86_64-linux-gnu/bits/local_lim.h:
+
+/usr/include/linux/limits.h:
+
+/usr/include/x86_64-linux-gnu/bits/posix2_lim.h:
+
+/usr/include/x86_64-linux-gnu/sys/param.h:
+
+/usr/include/signal.h:
+
+/usr/include/x86_64-linux-gnu/bits/signum.h:
+
+/usr/include/x86_64-linux-gnu/bits/signum-generic.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/sig_atomic_t.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/siginfo_t.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/__sigval_t.h:
+
+/usr/include/x86_64-linux-gnu/bits/siginfo-arch.h:
+
+/usr/include/x86_64-linux-gnu/bits/siginfo-consts.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/sigval_t.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/sigevent_t.h:
+
+/usr/include/x86_64-linux-gnu/bits/sigevent-consts.h:
+
+/usr/include/x86_64-linux-gnu/bits/sigaction.h:
+
+/usr/include/x86_64-linux-gnu/bits/sigcontext.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/stack_t.h:
+
+/usr/include/x86_64-linux-gnu/sys/ucontext.h:
+
+/usr/include/x86_64-linux-gnu/bits/sigstack.h:
+
+/usr/include/x86_64-linux-gnu/bits/ss_flags.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/struct_sigstack.h:
+
+/usr/include/x86_64-linux-gnu/bits/sigthread.h:
+
+/usr/include/x86_64-linux-gnu/bits/param.h:
+
+/usr/include/linux/param.h:
+
+/usr/include/x86_64-linux-gnu/asm/param.h:
+
+/usr/include/asm-generic/param.h:
+
+/usr/include/pthread.h:
+
+/usr/include/sched.h:
+
+/usr/include/x86_64-linux-gnu/bits/sched.h:
+
+/usr/include/x86_64-linux-gnu/bits/cpu-set.h:
+
+/usr/include/x86_64-linux-gnu/bits/setjmp.h:
+
+/usr/include/arpa/inet.h:
+
+/usr/include/x86_64-linux-gnu/sys/time.h:
+
+/usr/include/netinet/tcp.h:
+
+/usr/include/netinet/udp.h:
+
+/usr/include/byteswap.h:
+
+../../service_api/../include/../../../nDPI/src/include/ndpi_define.h:
+
+../../service_api/../include/../../../nDPI/src/include/ndpi_config.h:
+
+../../service_api/../include/../../../nDPI/src/include/ndpi_protocol_ids.h:
+
+../../service_api/../include/../../../nDPI/src/include/ndpi_typedefs.h:
+
+../../service_api/../include/../../../nDPI/src/include/ndpi_api.h:
+
+../../service_api/../include/../../../nDPI/src/include/ndpi_protocols.h:
+
+../../service_api/../include/../../../nDPI/src/include/ndpi_main.h:
 
 ../../service_api/../include/./common/xdp_user_helpers.h:
 

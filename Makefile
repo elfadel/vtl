@@ -7,7 +7,8 @@ BPFPROG_DIR = $(ROOT_DIR)/XTFsPool
 LIBBPF_DIR = $(ROOT_DIR)/lib/libbpf/src
 
 MODULES := $(SRC_DIR)/service_api
-MODULES += $(SRC_DIR)/adaptor
+MODULES += $(SRC_DIR)/cbr
+MODULES += $(SRC_DIR)/dbr
 MODULES += $(SRC_DIR)/include/common
 MODULES += $(SRC_DIR)/launcher
 MODULES += $(SRC_DIR)/ui
@@ -20,7 +21,8 @@ BPFPROG_CLEAN = $(addsuffix _clean, $(BPFPROG_DIR))
 STATIC_LIBVTL = $(BIN_DIR)/libvtl.a
 
 LIBVTL_OBJS := $(SRC_DIR)/service_api/*.o
-LIBVTL_OBJS += $(SRC_DIR)/adaptor/*.o
+LIBVTL_OBJS += $(SRC_DIR)/cbr/*.o
+LIBVTL_OBJS += $(SRC_DIR)/dbr/*.o
 LIBVTL_OBJS += $(SRC_DIR)/include/common/*.o
 LIBVTL_OBJS += $(SRC_DIR)/launcher/*.o
 

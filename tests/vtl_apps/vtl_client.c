@@ -1,12 +1,10 @@
 /*
-* @file :		vtl_client.c
-* @authors :		El-Fadel Bonfoh, Cedric Tape
-* @date :		11/2019
-* @version :		0.2
-* @brief :		VTL-aware Client: Receive data form VTL-aware server
+ * @file:		vtl_client.c
+ * @authors:		El-Fadel Bonfoh, Cedric Tape
+ * @date:		11/2019
+ * @version:		0.2
+ * @brief:		VTL-aware Client: Receive data form VTL-aware server
 */
-
-//SPDX-License-Identifier: GPL-2.0
 
 #include <signal.h>
 #include <stdio.h>
@@ -20,7 +18,15 @@
 #define SRC_IP 					"10.0.0.5"
 #define DST_IP					"10.0.0.4"
 #define DEV_NAME 				"enp0s3"
-#define DATASIZE 				1024;
+#define DATASIZE 				1024
+#define MAX_DATA_SIZE 				1024*10
+
+#define SYSTEM(CMD) 							\
+	do {								\
+		if(system(CMD)) 					\
+			printf("Shell cmd failed !\n");			\
+		else printf("Shell cmd OK !\n");			\
+	} while(0);
 
 static bool global_exit;
 
@@ -33,7 +39,6 @@ int main(int argc, char **argv) {
 
 	char ifname[] = DEV_NAME;
 	char src_ip[] = SRC_IP;
-	//char dst_ip[] = DST_IP;
 
 	vtl_socket_t *vtl_sock;
 	char err_buf[VTL_ERRBUF_SIZE];
@@ -49,8 +54,8 @@ int main(int argc, char **argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	FILE *rx_file = NULL;
-	rx_file = fopen("./files-receiver/out_GoT.mp4", "wb");
+	static FILE *rx_file = NULL;
+	rx_file = fopen("../../files/out_file.txt", "wb");
 	if(rx_file == NULL) {
 		fprintf(stderr, "ERR: failed to open test file\n");
 		exit(EXIT_FAILURE);
@@ -61,15 +66,28 @@ int main(int argc, char **argv) {
 	global_exit = false;
 	printf("\n");
 
-	while(!global_exit) { // Continue to recv data till explicit exit (Ctrl+C)
-		vtl_recv_data(vtl_sock, rx_file);
+	uint8_t *rx_data = NULL;
+	rx_data = calloc(1, MAX_DATA_SIZE);
+	if(rx_data == NULL) {
+		printf("Error: unable to calloc()\n");
+		return -1;
+	}
+
+	size_t rx_data_len = 0;
+	while(!global_exit) { // Continue to recv data till explicit exit (Ctrl+c)
+		vtl_recv_data(vtl_sock, rx_data, &rx_data_len, err_buf);
 		printf("Recv pkt: %d --- Recv bytes: %d\r",
-						vtl_sock->cnt_pkts, vtl_sock->cnt_bytes);
+			vtl_sock->cnt_pkts, vtl_sock->cnt_bytes);
 		fflush(stdout);
+		if(rx_data_len != 0) { // TODO: fix
+			printf("write %ld bytes\n", rx_data_len);
+			fwrite(rx_data, 1, rx_data_len, rx_file);
+			fflush(rx_file);
+		}
 	}
 
 	printf("\n");
-	printf("Done\n");
+	printf("Done !\n");
 
 	fclose(rx_file);
 

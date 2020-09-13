@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	tx_file = fopen("../../files/video16M.mp4", "rb");
+	tx_file = fopen("../../files/file4K.txt", "rb");
 	if(tx_file == NULL) {
 		fprintf(stderr, "ERR: failed to open test file\n");
 		exit(EXIT_FAILURE);

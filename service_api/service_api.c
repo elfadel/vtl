@@ -16,8 +16,8 @@
 
 #include "service_api.h"
 #include "../include/common/util.h"
-#include "../adaptor/adaptor_recv.h"
-#include "../adaptor/adaptor_send.h"
+#include "../cbr/cbr.h"
+#include "../dbr/dbr.h"
 
 vtl_socket_t* vtl_init(vtl_host_role role, char *src_ip, char *dst_ip, char *ifname, char *err_buf) {
 
@@ -39,20 +39,20 @@ vtl_socket_t* vtl_init(vtl_host_role role, char *src_ip, char *dst_ip, char *ifn
 			xsk_bind_flags &= XDP_ZEROCOPY;
 			xsk_bind_flags |= XDP_COPY;
 
-			vtl_sock->xsk_socket = adaptor_create_xsk_sock(ifname, xdp_flags, xsk_bind_flags, xsk_if_queue, &umem, err_buf);
-			if(vtl_sock->xsk_socket == NULL) { // VTL socket init failed !
+			vtl_sock->xsk_socket = cbr_create_and_config_xsk_sock(ifname, xdp_flags, xsk_bind_flags, 
+										xsk_if_queue, &umem, err_buf);
+			if(vtl_sock->xsk_socket == NULL)
 				return NULL;
-			}
 			vtl_sock->recv_data = allocate_ustrmem(VTL_DATA_SIZE);
 			break;
 
 		case VTL_SENDER_ROLE:
 			// tc ==> config raw socket
-			vtl_sock->af_inet_sock = adaptor_create_raw_sock(AF_INET, IPPROTO_RAW, err_buf);
+			vtl_sock->af_inet_sock = cbr_create_raw_sock(AF_INET, IPPROTO_RAW, err_buf);
 			if(vtl_sock->af_inet_sock < 0) { // VTL socket init failed !
 				return NULL;
 			}
-			ret = adaptor_config_raw_sock(vtl_sock->af_inet_sock, ifname, err_buf);
+			ret = cbr_config_raw_sock(vtl_sock->af_inet_sock, ifname, err_buf);
 			if(ret < 0)
 				return NULL;
 			vtl_sock->send_data = allocate_ustrmem(VTL_DATA_SIZE);
@@ -66,17 +66,16 @@ vtl_socket_t* vtl_init(vtl_host_role role, char *src_ip, char *dst_ip, char *ifn
 			xsk_bind_flags &= XDP_ZEROCOPY;
 			xsk_bind_flags |= XDP_COPY;
 
-			vtl_sock->xsk_socket = adaptor_create_xsk_sock(ifname, xdp_flags, xsk_bind_flags,
-																xsk_if_queue, &umem, err_buf);
-			if(vtl_sock->xsk_socket == NULL) { // VTL socket init failed !
+			vtl_sock->xsk_socket = cbr_create_and_config_xsk_sock(ifname, xdp_flags, xsk_bind_flags,
+										xsk_if_queue, &umem, err_buf);
+			if(vtl_sock->xsk_socket == NULL)
 				return NULL;
-			}
 			vtl_sock->recv_data = allocate_ustrmem(VTL_DATA_SIZE);
-			vtl_sock->af_inet_sock = adaptor_create_raw_sock(AF_INET, IPPROTO_RAW, err_buf);
-			if(vtl_sock->af_inet_sock < 0) { // VTL socket init failed !
+			vtl_sock->af_inet_sock = cbr_create_raw_sock(AF_INET, IPPROTO_RAW, err_buf);
+			if(vtl_sock->af_inet_sock < 0)
 				return NULL;
-			}
-			ret = adaptor_config_raw_sock(vtl_sock->af_inet_sock, ifname, err_buf);
+			
+			ret = cbr_config_raw_sock(vtl_sock->af_inet_sock, ifname, err_buf);
 			if(ret < 0)
 				return NULL;
 			vtl_sock->send_data = allocate_ustrmem(VTL_DATA_SIZE);
@@ -110,18 +109,16 @@ int vtl_send_data(vtl_socket_t *vtl_sock, uint8_t *data, size_t data_len, char *
 	vtl_sock->send_data = data;
 	vtl_sock->send_data_len = data_len;
 
-	// Sent VTL packet
-	ret = adaptor_send_packet(vtl_sock->af_inet_sock, vtl_sock->send_pkt, &vtl_sock->vtlh, &vtl_sock->iphdr, 
-					vtl_sock->dst_ip, vtl_sock->src_ip, vtl_sock->ip_flags,
-					vtl_sock->send_data, vtl_sock->send_data_len, err_buf);
-
-	if(ret < 0) { // Failed to send data
+	// Send VTL packet
+	ret = dbr_send(vtl_sock->af_inet_sock, vtl_sock->send_pkt, &vtl_sock->vtlh, &vtl_sock->iphdr, 
+				vtl_sock->dst_ip, vtl_sock->src_ip, vtl_sock->ip_flags,
+				vtl_sock->send_data, vtl_sock->send_data_len, err_buf);
+	if(ret < 0) {
 		return -1;
 	}
 	return 0;
 }
 
-void vtl_recv_data(vtl_socket_t *vtl_sock, FILE *rx_file) {
-	adaptor_recv_data(vtl_sock->xsk_socket, rx_file,
-						&vtl_sock->cnt_pkts, &vtl_sock->cnt_bytes);
+void vtl_recv_data(vtl_socket_t *vtl_sock, uint8_t *rx_data, size_t *rx_data_len, char *err_buf) {
+	dbr_recv(vtl_sock->xsk_socket, rx_data, rx_data_len, &vtl_sock->cnt_pkts, &vtl_sock->cnt_bytes);
 }

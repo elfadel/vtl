@@ -1,19 +1,14 @@
-#ifndef __XSK_USER_HELPERS_H
-#define __XSK_USER_HELPERS_H
+#pragma once
 
 #include <bpf/xsk.h>
 
-// Faire attention
 //TODO: remove defines.h
 #include "defines.h"
 
-//TODO: change later
-// Afin de réduire le code à inclure
-//#include "xdp_user_helpers.h"
-
-#define NUM_FRAMES         16384
-#define FRAME_SIZE         XSK_UMEM__DEFAULT_FRAME_SIZE
-#define INVALID_UMEM_FRAME UINT64_MAX
+#define NUM_FRAMES 					16384
+#define FRAME_SIZE         			XSK_UMEM__DEFAULT_FRAME_SIZE
+#define RX_BATCH_SIZE 				64
+#define INVALID_UMEM_FRAME 			UINT64_MAX
 
 struct xsk_umem_info {
 	struct xsk_ring_prod fq;
@@ -53,6 +48,3 @@ uint64_t xsk_umem_free_frames(struct xsk_socket_info *xsk);
 struct xsk_socket_info *
 xsk_configure_socket(char *ifname, __u32 xdp_flags, __u16 xsk_bind_flags,
 			int xsk_if_queue, struct xsk_umem_info *umem);
-
-
-#endif  /*__XSK_USER_HELPERS_H */

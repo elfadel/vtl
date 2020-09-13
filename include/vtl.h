@@ -21,11 +21,11 @@
 #include "./common/xsk_user_helpers.h"
 
 /* Arbitrary numbers */
-#define IPPROTO_VTL 					0xfd
-#define VTL_ERRBUF_SIZE 				0x100
-#define VTL_HDR_LEN 					0x14 
-#define IP4_HDR_LEN 					0x14
-#define VTL_DATA_SIZE 					0x400
+#define IPPROTO_VTL 				0xfd
+#define VTL_ERRBUF_SIZE 			0x100
+#define VTL_HDR_LEN 				0x14 
+#define IP4_HDR_LEN 				0x14
+#define VTL_DATA_SIZE 				0x400
 #define MAX_HANDLED_TCP_STREAMS 		0x10000 /* 65536 */
 #define MAX_PROFILING_TRIES 			5
 
@@ -35,12 +35,12 @@
 typedef enum {
 	VTL_SENDER_ROLE, // old VTL_MODE_OUT
 	VTL_RECVER_ROLE, // old VTL_MODE_IN
-	VTL_BOTH_ROLE, // old VTL_MODE_INOUT
+	VTL_BOTH_ROLE, 	// old VTL_MODE_INOUT
 } vtl_host_role;
 
 enum tcp_host_role {
 	TCP_CLIENT = 1, /* <==> RECEIVER role in VTL */
-	TCP_SERVER, /* <==> SENDER role in VTL */
+	TCP_SERVER, 	/* <==> SENDER role in VTL */
 };
 
 /*************
@@ -54,9 +54,9 @@ typedef enum {
 // TODO: Use by Go-back-N. May be changed. VTL should provides all 
 // necessary support for negotiation only, not for internal TF algo.
 // ==> move this #defines to the code of the TFs.
-#define RECV_ACK 						0x0
-#define TIMEOUT 						0x1
-#define IDLE 							0x2
+#define RECV_ACK 					0x0
+#define TIMEOUT 					0x1
+#define IDLE 						0x2
 
 /*************
  packet types
@@ -97,8 +97,8 @@ typedef struct {
 typedef struct {
 	// XSK_sock
 	struct xsk_socket_info *xsk_socket; // contain umem
-	struct xdp_config xdp_cfg; // TODO: find where it is used
-	uint8_t *recv_data; // <==> Rx buff
+	struct xdp_config xdp_cfg; 	// TODO: find where it is used
+	uint8_t *recv_data; 		// <==> Rx buff
 	size_t recv_data_len;
 
 	// RAW_sock
@@ -123,6 +123,12 @@ typedef struct {
 	uint32_t cnt_bytes;
 	char err_buf[VTL_ERRBUF_SIZE];
 } vtl_socket_t;
+
+struct vtl_qos_params {
+	uint32_t delay;     // ms
+	uint32_t thpt; 	    // Mbps
+	uint32_t loss_rate; // % 
+};
 
 struct sock_state_t { // change the name
 	__u32 sk_fd;
