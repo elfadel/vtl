@@ -1,10 +1,13 @@
 /* SPDX-License-Identifier: GPL-2.0 */
 
+//INGRESS STOP-WAIT ARQ KTF
+
 #include <stdint.h>
 #include <linux/if_ether.h>
 #include <netinet/ip.h>
 #include <linux/bpf.h>
 #include "bpf/bpf_helpers.h"
+#include "bpf/tc_bpf_util.h"
 
 #include "../include/vtl.h"
 
@@ -14,13 +17,6 @@ struct bpf_map_def SEC("maps") xsks_map = {
     .value_size = sizeof(int),
     .max_entries = 64,
 };
-
-#define bpf_printk(fmt, ...)                       \
-    ({                                             \
-        char ____fmt[] = fmt;                      \
-        bpf_trace_printk(____fmt, sizeof(____fmt), \
-                         ##__VA_ARGS__);           \
-    })
 
 static __always_inline void swap_src_dst_mac(void *data) {
     unsigned short *p = data;
@@ -38,10 +34,8 @@ static __always_inline void swap_src_dst_mac(void *data) {
 }
 
 SEC("ingress_tf_sec")
-int xdp_sock_prog(struct xdp_md *ctx)
-{
-    int index = ctx->rx_queue_index, p_time = 0;
-
+int xdp_sock_prog(struct xdp_md *ctx) {
+    int index = ctx->rx_queue_index;
     void *data = (void *)(long)ctx->data;
     void *data_end = (void *)(long)ctx->data_end;
 
@@ -61,17 +55,16 @@ int xdp_sock_prog(struct xdp_md *ctx)
         return XDP_PASS;
     }
 
-    p_time = bpf_ktime_get_ns();
-    bpf_printk("Received pkt at rt=%d\n", p_time);
-
     vtl_hdr_t *vtlh = (vtl_hdr_t *)(iph + 1);
     if(vtlh + 1 > data_end){
         bpf_printk("VTLH: malformed header.\n");
         return XDP_DROP;
     }
-    int len = (int)(data_end - data);
-    int pload_s = (len == 1062) ? 1024 : 363;
 
+    uint16_t send_csum = vtlh->checksum;
+    int len = (int)(data_end - data);
+    int pkt_size = sizeof(struct ethhdr) + sizeof(struct iphdr) + sizeof(vtl_hdr_t) + VTL_DATA_SIZE;
+    int pload_s = (len == pkt_size) ? 1024 : 696;
 
     uint8_t *d = (uint8_t *)(vtlh + 1);
     if(d + 1 > data_end) {
@@ -79,8 +72,7 @@ int xdp_sock_prog(struct xdp_md *ctx)
       return XDP_DROP;
     }
 
-    uint16_t sender_csum = vtlh->checksum;
-
+    //uint16_t sender_csum = vtlh->checksum;
     int y = 0;
     uint8_t sum = 0;
     for(y = 0; y < pload_s; y++){
@@ -90,11 +82,9 @@ int xdp_sock_prog(struct xdp_md *ctx)
       }
       sum ^= *block;
     }
-    vtlh->checksum = sum;
-    if (sender_csum == vtlh->checksum) // NO corrupted pkt
+    uint16_t recv_csum = sum;/*vtlh->checksum;*/
+    if (recv_csum == send_csum) // NO corrupted pkt
     {
-      p_time = bpf_ktime_get_ns();
-      bpf_printk("Finish Process and send ack at rt=%d\n", p_time);
       if (bpf_map_lookup_elem(&xsks_map, &index))
           return bpf_redirect_map(&xsks_map, index, 0);
     }
@@ -103,11 +93,7 @@ int xdp_sock_prog(struct xdp_md *ctx)
       __be32 temp_ip = iph->saddr;
       iph->saddr = iph->daddr;
       iph->daddr = temp_ip;
-
       vtlh->type = NACK;
-
-      p_time = bpf_ktime_get_ns();
-      bpf_printk("Finish Process and send Nack at rt=%d\n", p_time);
 
       return XDP_TX;
     }

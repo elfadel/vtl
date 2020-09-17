@@ -1,8 +1,8 @@
 /*
  * @file: 		hooker_test_progs.c
- * @author: 	El-Fadel Bonfoh
+ * @author: 		El-Fadel Bonfoh
  * @date: 		06/2020
- * @version 	1.0
+ * @version 		1.0
  * @brief: 		Hooker kernel part
 */
 
@@ -17,7 +17,7 @@
 #define TCPOPT_NOP 			1
 #define SERVER_PORT 		/*4443*/2222 // TODO. Get those values from CLI.
 #define CLIENT_PORT 		/*4443*/2223
-#define HK_REDIR_PORT       10000
+#define HK_REDIR_PORT       		10000
 
 struct tcp_opt v_opt = {
 	.kind = 253, // Experimental value (iana.org RF2780)

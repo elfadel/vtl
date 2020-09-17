@@ -1,11 +1,11 @@
 //SPDX-License-Identifier: GPL-2.0
 
 /*
-* @file :		service_api.c
-* @authors :		El-Fadel Bonfoh, Cedric Tape
-* @date :		12/2019
-* @version :		0.1
-* @brief :
+ * @file :		service_api.c
+ * @authors :		El-Fadel Bonfoh, Cedric Tape
+ * @date :		12/2019
+ * @version :		0.1
+ * @brief :
 */
 
 #include <stdio.h>
@@ -21,7 +21,8 @@
 #include "../dbr/dbr.h"
 
 static const char *TC_GLOBAL_NS = "/sys/fs/bpf/tc/globals";
-static const char *path_to_nego_map = "/sys/fs/bpf/ngmap";
+//static const char *path_to_nego_map = "/sys/fs/bpf/ngmap";
+static const char *path_to_graftid_map = "/sys/fs/bpf/graftidmap";
 static const char *BPF_NEGO_MAP = "QOS_NEGO_MAP";
 
 static long __get_map_fd(const char* map_filename) {
@@ -110,7 +111,7 @@ vtl_socket_t* vtl_init(vtl_host_role role, char *src_ip, char *dst_ip, char *ifn
 	}
 	strcpy(vtl_sock->ifname, ifname);
 
-	vtl_sock->vtlh.gid = 10;
+	vtl_sock->vtlh.gid = -1;
 
 	return vtl_sock;
 }
@@ -148,7 +149,7 @@ int vtl_negotiate(vtl_socket_t *vtl_sock, struct vtl_qos_params qos_values, char
 	negotiation_state *nego_state = NULL;
 
 	if(1/* TODO: replace by matching rules between qos_values and KTF/Grafts store */) {
-		vtl_sock->vtlh.gid = 100; // cbr_select_graft(qos_values,  l4_services)
+		vtl_sock->vtlh.gid = 10; // cbr_select_graft(qos_values,  l4_services)
 		int ret;
 
 		if(vtl_sock->vtlh.gid <= 0) {
@@ -194,58 +195,40 @@ int vtl_negotiate(vtl_socket_t *vtl_sock, struct vtl_qos_params qos_values, char
 
 int vtl_validate(vtl_socket_t *vtl_sock, char *err_buf) {
 
-	int graft_available = 0, ret;
-	vtl_hdr_t *vtlh = (vtl_hdr_t *)calloc(1, sizeof(vtl_hdr_t));
-	if(vtlh == NULL) {
-		fprintf(stderr, "[SERVICE API]: vtl hdr calloc() failed.\n");
+	int graft_available = 0; 
+	int rx_graft_id = -1; 
+	int ret;
+	int index = 0;
+	
+	int graft_id_map = bpf_obj_get(path_to_graftid_map);
+	if(graft_id_map < 0) {
+		fprintf(stderr, "[SERVICE API]: Error - unable to get QOS_NEGO_MAP\n");
 		return -1;
 	}
-
-	dbr_recv(vtl_sock->xsk_socket, NULL, NULL, NULL, NULL, vtlh);
-
-	if(vtlh != NULL && vtlh->gid > 0) {
+	do {
+		bpf_map_lookup_elem(graft_id_map, &index, &rx_graft_id);
+		if(rx_graft_id != -100)
+			break;
+	} while(1);
 		
-		int qos_nego_map = bpf_obj_get(path_to_nego_map);
-		if(qos_nego_map < 0) {
-			fprintf(stderr, "[SERVICE API]: Error - unable to get QOS_NEGO_MAP\n");
-			return -1;
-		}
-		
-		graft_available = 1; //cbr_find_graft(vtlh->gid);
-		if(graft_available > 0) {
-			/* vtl_sock->vtlh.gid = vtlh->gid;
-			ret = dbr_send(vtl_sock->af_inet_sock, vtl_sock->send_pkt, &vtl_sock->vtlh, &vtl_sock->iphdr,
-					vtl_sock->dst_ip, vtl_sock->src_ip, vtl_sock->ip_flags, NULL, 0, err_buf);
-			*/
-			
-			int index = 0;
-			negotiation_state nego_state = N_ACCEPT;
-			ret = (int) bpf_map_update_elem(qos_nego_map, &index, &nego_state, BPF_ANY);
-  			if (ret != 0) {
-    				fprintf(stderr, "[SERVICE API]: could not update QOS_NEGO_MAP.\n");
-    				return -1;
-  			}
+	graft_available = rx_graft_id; //cbr_find_graft(rx_graft_id);
 
-  			return vtlh->gid;
-		}
-		else {
-
-			int index = 0;
-			negotiation_state nego_state = N_REFUSE;
-			ret = (int) bpf_map_update_elem(qos_nego_map, &index, &nego_state, BPF_ANY);
-			if(ret != 0) {
-				fprintf(stderr, "[SERVICE API]: could not update QOS_NEGO_MAP.\n");
-				return -1;
-			}
-
-			return 0; // TODO: Consider to replace by -1
-		}
-
+	if(graft_available == 0)
 		return 0;
+	else if(graft_available > 0) {
+		vtl_sock->vtlh.gid = rx_graft_id;
+		vtl_sock->vtlh.pkt_type = NEGO_ACK;
 	}
-	else { // actually, should never happened. 
-		return -1;
+	else { // Graft not available in XTF pool
+
+		vtl_sock->vtlh.gid = 0; // Fallback to cano; not mandatory
+		vtl_sock->vtlh.pkt_type = NEGO_NACK;
 	}
 
-	return 0; // Consider the return of -1
+	ret = dbr_send(vtl_sock->af_inet_sock, vtl_sock->send_pkt, &vtl_sock->vtlh, &vtl_sock->iphdr,
+			vtl_sock->dst_ip, vtl_sock->src_ip, vtl_sock->ip_flags, NULL, 0, err_buf);
+			
+  	return rx_graft_id;
 }
+
+int vtl_close()
