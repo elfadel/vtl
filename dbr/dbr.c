@@ -170,33 +170,39 @@ int dbr_send(int sock_fd, uint8_t *send_pkt,
 }
 
 static bool __process_packet(struct xsk_socket_info *xsk, uint64_t addr, uint32_t len,
-				uint8_t *rx_data, size_t *rx_data_len, 
-				uint32_t *cnt_pkts, uint32_t *cnt_bytes) 
+				uint8_t *rx_data, size_t *rx_data_len, uint32_t *cnt_pkts, 
+				uint32_t *cnt_bytes, vtl_hdr_t *vtlh) 
 {
 	uint32_t hdr_size, data_size;
-
+	uint8_t *data;
 	uint8_t *pkt = xsk_umem__get_data(xsk->umem->buffer, addr);
 
 	struct ethhdr *eth = (struct ethhdr *) pkt;
 	struct iphdr *iph = (struct iphdr *)(eth + 1);
-	vtl_hdr_t *vtlh = (vtl_hdr_t *)(iph + 1);
-	uint8_t *data = (uint8_t *)(vtlh + 1);
+	if(vtlh != NULL) {
+		vtlh = (vtl_hdr_t *)(iph + 1);
+		data = (uint8_t *)(vtlh + 1);
+	}
+	else {
+		vtl_hdr_t *in_vtlh = (vtl_hdr_t *)(iph + 1);
+		data = (uint8_t *)(in_vtlh + 1);
+	}
 
-	hdr_size = sizeof(struct ethhdr) + sizeof(struct iphdr) + sizeof(vtl_hdr_t);
-	data_size = len - hdr_size;
+	if(rx_data != NULL) {
+		hdr_size = sizeof(struct ethhdr) + sizeof(struct iphdr) + sizeof(vtl_hdr_t);
+		data_size = len - hdr_size;
 
-	// TODO: Make a linked list or ring buffer
-	memcpy(rx_data + *rx_data_len, data, data_size);
-	*rx_data += (size_t) data_size;
+		memcpy(rx_data + *rx_data_len, data, data_size);
+		*rx_data_len += (size_t) data_size;
 	
-	*cnt_pkts += 1;
-	*cnt_bytes += data_size;
-
+		*cnt_pkts += 1;
+		*cnt_bytes += data_size;
+	}
 	return true;
 }
 
-static void __handle_receive_packets(struct xsk_socket_info *xsk, uint8_t *rx_data, 
-					size_t *rx_data_len, uint32_t *cnt_pkts, uint32_t *cnt_bytes) 
+static void __handle_receive_packets(struct xsk_socket_info *xsk, uint8_t *rx_data, size_t *rx_data_len, 
+					uint32_t *cnt_pkts, uint32_t *cnt_bytes, vtl_hdr_t *vtlh) 
 {
 	unsigned int recvd, stock_frames, i;
 	uint32_t idx_rx = 0, idx_fq = 0;
@@ -223,14 +229,14 @@ static void __handle_receive_packets(struct xsk_socket_info *xsk, uint8_t *rx_da
 		xsk_ring_prod__submit(&xsk->umem->fq, stock_frames);
 	}
 
-	*rx_data_len = 0;
 	// Process received packets
 	for(i = 0; i < recvd; i++) {
 		uint64_t addr = xsk_ring_cons__rx_desc(&xsk->rx, idx_rx)->addr;
 		uint32_t len = xsk_ring_cons__rx_desc(&xsk->rx, idx_rx++)->len;
 
-		if(!__process_packet(xsk, addr, len, rx_data, rx_data_len, cnt_pkts, cnt_bytes))
+		if(!__process_packet(xsk, addr, len, rx_data, rx_data_len, cnt_pkts, cnt_bytes, vtlh)) {
 			xsk_free_umem_frame(xsk, addr);
+		}
 	}
 
 	xsk_ring_cons__release(&xsk->rx, recvd);
@@ -238,7 +244,7 @@ static void __handle_receive_packets(struct xsk_socket_info *xsk, uint8_t *rx_da
 
 void dbr_recv(struct xsk_socket_info *xsk_socket, 
 		uint8_t *rx_data, size_t *rx_data_len,
-		uint32_t *cnt_pkts, uint32_t *cnt_bytes) 
+		uint32_t *cnt_pkts, uint32_t *cnt_bytes, vtl_hdr_t *vtlh) 
 {
 	// TODO: remove poll code to save resource
   	struct pollfd fds[2];
@@ -246,5 +252,5 @@ void dbr_recv(struct xsk_socket_info *xsk_socket,
 	fds[0].fd = xsk_socket__fd(xsk_socket->xsk);
 	fds[0].events = POLLIN;
 
-	__handle_receive_packets(xsk_socket, rx_data, rx_data_len, cnt_pkts, cnt_bytes);
+	__handle_receive_packets(xsk_socket, rx_data, rx_data_len, cnt_pkts, cnt_bytes, vtlh);
 }

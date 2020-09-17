@@ -76,11 +76,10 @@ int main(int argc, char **argv) {
 	size_t rx_data_len = 0;
 	while(!global_exit) { // Continue to recv data till explicit exit (Ctrl+c)
 		vtl_recv_data(vtl_sock, rx_data, &rx_data_len, err_buf);
-		printf("Recv pkt: %d --- Recv bytes: %d\r",
-			vtl_sock->cnt_pkts, vtl_sock->cnt_bytes);
+		
 		fflush(stdout);
-		if(rx_data_len != 0) { // TODO: fix
-			printf("write %ld bytes\n", rx_data_len);
+		if(rx_data_len != 0) {
+			printf("Receive and write %ld bytes\n", rx_data_len);
 			fwrite(rx_data, 1, rx_data_len, rx_file);
 			fflush(rx_file);
 		}

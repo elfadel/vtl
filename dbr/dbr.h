@@ -23,8 +23,8 @@
 int dbr_send(int sock_fd, uint8_t *send_pkt, 
 		vtl_hdr_t *vtlh, struct ip *iphdr, 
 		char *dst_ip, char *src_ip, int *ip_flags,
-                uint8_t *send_data, size_t send_data_len, char *err_buf);
+				uint8_t *send_data, size_t send_data_len, char *err_buf);
 
 void dbr_recv(struct xsk_socket_info *xsk_socket, 
-		uint8_t *rx_data, size_t *rx_data_len, 
-		uint32_t *cnt_pkts, uint32_t *cnt_bytes);
+		uint8_t *rx_data, size_t *rx_data_len,
+		uint32_t *cnt_pkts, uint32_t *cnt_bytes, vtl_hdr_t *vtlh);

@@ -110,6 +110,8 @@ int deploy_tf(int mode)
 
                 printf("\n\nDeploying TF on %s interface in input mode...\n", interface);
 
+                if(system("mount -t bpf bpf /sys/fs/bpf/") == -1) /* consider to move to launcher */
+                    printf("[VTL_UI]: WARN - unable to mount bpf map fs.\n");
                 ret = launcher_load_graft_file(BPF_XDP_FILENAME, interface);
                 if (ret != 0) {
                         fprintf(stderr, "%s", xdp_cfg.err_buf);
@@ -140,8 +142,8 @@ int deploy_tf(int mode)
 
             select_interface(interface);
             printf("[VTL_UI]: Enabling Hooker ...\n");
-            if(system("mount -t bpf bpf /sys/fs/bpf/") == -1)
-                printf("[VTL_UI]: WARN - unable to munt bpf map fs.\n");
+            if(system("mount -t bpf bpf /sys/fs/bpf/") == -1) /* consider to move to launcher */
+                printf("[VTL_UI]: WARN - unable to mount bpf map fs.\n");
             ret = launcher_load_graft_file(BPF_HOOKER_FILENAME, interface);
 
             if(ret != 0) {

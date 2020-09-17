@@ -82,7 +82,7 @@ typedef struct {
 
 typedef struct {
 	size_t data_len;
-		uint8_t *data; // TODO: flexible array data[0]
+	uint8_t *data; // TODO: flexible array data[0]
 } vtl_payload_t;
 
 typedef struct {
@@ -130,20 +130,20 @@ struct vtl_qos_params {
 	uint32_t loss_rate; // % 
 };
 
-struct sock_state_t { // change the name
+struct sock_state_t { // TODO: change the name
 	__u32 sk_fd;
 	int event;
 }__attribute__((packed));
 
 typedef enum {
 	// TODO: Add OPT at the end of all vars
-	VTL_COMPLIANT,
+	VTL_COMPLIANT_OPT,
 	NEGO_OPT,
 	NEGO_ACK_OPT,
 	NEGO_NACK_OPT,
 	CLOSE_OPT,
 	CLOSE_ACK_OPT,
-	VTL_PURE_DATA,
+	VTL_PURE_DATA_OPT,
 } vtl_tcp_options;
 
 struct tcp_opt {

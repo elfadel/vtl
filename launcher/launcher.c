@@ -1,11 +1,11 @@
 //SPDX-License-Identifier: GPL-2.0
 
 /*
- * @file :		launcher.c
- * @authors :	El-Fadel Bonfoh, Cedric Tape
- * @date :		12/2019
- * @version :	0.1
- * @brief :
+ * @file:		launcher.c
+ * @authors:		El-Fadel Bonfoh, Cedric Tape
+ * @date:		12/2019
+ * @version:		0.1
+ * @brief:
 */
 
 #include <bpf/libbpf.h>
@@ -18,11 +18,12 @@
 #include "launcher.h"
 
 static char license[128];
-static int kern_version; // TODO: it is __u32 under libbpf
+static int kern_version;
 static bool processed_sec[128];
 static const char *pinned_skops_file = "/sys/fs/bpf/skops";
 static const char *pinned_skmap_file = "/sys/fs/bpf/skmap";
 static const char *pinned_appli_file = "/sys/fs/bpf/appli";
+static const char *pinned_ngmap_file = "/sys/fs/bpf/ngmap";
 char bpf_log_buff[ERR_BUFF_SIZE];
 
 int progs_fd[MAX_TF_PROGS];
@@ -317,7 +318,8 @@ int launcher_load_hooker_progs(const char *sec_name, struct bpf_insn *prog, int 
 		printf("[LAUNCHER]: pinning Hooker skops prog to %s\n", pinned_skops_file);
 		ret = bpf_obj_pin(fd, pinned_skops_file);
 		if(ret) {
-			printf("[LAUNCHER]: WARN - failed to pin Hooker skops prog.\n");
+			printf("[LAUNCHER]: WARN - failed to pin Hooker skops prog. err=%s\n",
+				strerror(errno));
 		}
 		else
 			printf("[LAUNCHER]: sock_ops pinned ! \n");
@@ -369,30 +371,17 @@ int launcher_load_hooker_progs(const char *sec_name, struct bpf_insn *prog, int 
 
 int launcher_unload_hooker_progs() {
 
-	// TODO: Fix. progs_fd[] and maps_fd[] always return 0
-	/*if(progs_fd[1] && maps_fd[0]) { // sk_msg && sk_map  
-		printf("[LAUNCHER]: detaching sk_msg...\n");
+	printf("[LAUNCHER]: detaching sk_ops...\n");
 
-		if(system("bpftool prog detach id progs_fd[1] msg_verdict pinned \"/sys/fs/bpf/skmap\"") == -1) {
-			printf("[LAUNCHER]: failed to detach sk_msg\n");
-			perror("launcher_unload_hooker_progs");
-			return -1;
-		}
-	} */
+	if(system("bpftool cgroup detach \"/sys/fs/cgroup/unified/\" sock_ops pinned \"/sys/fs/bpf/skops\"") == -1) {
+		printf("[LAUNCHER]: failed to detach sk_ops\n");
+		perror("launcher_unload_hooker_progs");
+		return -1;
+	}
 
-	//if(progs_fd[0] && cg_fd != -1) {
-		printf("[LAUNCHER]: detaching sk_ops...\n");
-
-		if(system("bpftool cgroup detach \"/sys/fs/cgroup/unified/\" sock_ops pinned \"/sys/fs/bpf/skops\"") == -1) {
-			printf("[LAUNCHER]: failed to detach sk_ops\n");
-			perror("launcher_unload_hooker_progs");
-			return -1;
-		}
-
-		if(system("rm \"/sys/fs/bpf/skops\"") == -1) {
-			printf("[LAUNCHER]: WARN - failed to remove pinned skops\n");
-		}
-	//}
+	if(system("rm \"/sys/fs/bpf/skops\"") == -1) {
+		printf("[LAUNCHER]: WARN - failed to remove pinned skops\n");
+	}
 
 	if(system("rm \"/sys/fs/bpf/appli\"") == -1) {
 		printf("[LAUNCHER]: WARN - failed to remove pinned appli map\n");
@@ -457,7 +446,8 @@ static int __load_maps(struct bpf_map_data *maps, int nr_maps,
 			printf("[LAUNCHER]: pinning SOCKMAP fd = %d to %s\n", maps_fd[i], pinned_skmap_file);
 			int ret = bpf_obj_pin(maps_fd[i], pinned_skmap_file);
 			if(ret)
-				printf("[LAUNCHER]: WARN - failed to pin sockmap.\n");
+				printf("[LAUNCHER]: WARN - failed to pin sockmap. err=%s\n",
+					strerror(errno));
 			else
 				printf("[LAUNCHER]: sockmap pinned !\n");
 		}
@@ -465,9 +455,19 @@ static int __load_maps(struct bpf_map_data *maps, int nr_maps,
 			printf("[LAUNCHER]: pinning app_info_map fd = %d to %s\n", maps_fd[i], pinned_appli_file);
 			int ret = bpf_obj_pin(maps_fd[i], pinned_appli_file);
 			if(ret)
-				printf("[LAUNCHER]: WARN - failed to pin applimap.\n");
+				printf("[LAUNCHER]: WARN - failed to pin applimap. err=%s\n",
+					strerror(errno));
 			else
 				printf("[LAUNCHER]: applimap pinned !\n"); 
+		}
+		if(strcmp(maps[i].name, "QOS_NEGO_MAP") == 0) {
+			printf("[LAUNCHER]: pinning qos_nego_map.\n");
+			int ret = bpf_obj_pin(maps_fd[i], pinned_ngmap_file);
+			if(ret)
+				printf("[LAUNCHER]: WARN - failed to pin QOS_NEGO_MAP. err=%s\n", 
+					strerror(errno));
+			else
+				printf("[LAUNCHER]: QOS_NEGO_MAP pinned !\n");
 		}
 	}
 	return 0;
