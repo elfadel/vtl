@@ -43,16 +43,6 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "ERR: vtl_init() failed.\n");
 		exit(EXIT_FAILURE);
 	}
-
-	/*struct vtl_qos_params qos_values = {
-		.delay = 0,
-		.thpt = 0,
-		.loss_rate = 0,
-	};
-	ret = vtl_negotiate(vtl_sock, qos_values, err_buf);
-	if(ret == -1) {
-		printf("WARN - vtl_negotiate failed.\n");
-	}*/
 	
 	tx_file = fopen("../../files/file4K.txt", "rb");
 	if(tx_file == NULL) {
@@ -62,21 +52,18 @@ int main(int argc, char **argv) {
 
 	printf("Sending data ...\n");
 
-	//char buff[DATASIZE];
 	send_data = calloc(1, DATASIZE*sizeof(uint8_t));
 	if(send_data == NULL) {
 		fprintf(stderr, "ERR: Cannot allocate memory for Tx Buff.\n");
 		exit(EXIT_FAILURE);
 	}
-	//memset(send_data, 0, DATASIZE*sizeof(uint8_t));
+	memset(send_data, 0, DATASIZE*sizeof(uint8_t));
 
 	if(tx_file == NULL)
 		printf("FILE null\n");
 	int j = 0;
 	while(!feof(tx_file) && j < 4) { // Read till end of file
 		send_data_s = fread(send_data, 1, DATASIZE, tx_file);
-		//memcpy(send_data, "Test ", 6);
-		//send_data_s = 6;
 		ret = vtl_send_data(vtl_sock, send_data, send_data_s, err_buf);
 		if(ret < 0) {
 			fprintf(stderr, "%s\n", err_buf);

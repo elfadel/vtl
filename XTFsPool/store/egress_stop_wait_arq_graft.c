@@ -1,4 +1,4 @@
-//EGRESS STOP-WAIT ARQ KTF
+// EGRESS STOP-WAIT ARQ GRAFT
 
 #include <stdbool.h>
 #include <stdint.h>

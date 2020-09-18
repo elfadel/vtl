@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0 */
 
-//INGRESS GOBACKN ARQ KTF
+//INGRESS GOBACKN ARQ GRAFT
 
 #include <stdint.h>
 #include <linux/if_ether.h>

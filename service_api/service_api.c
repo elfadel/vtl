@@ -230,5 +230,3 @@ int vtl_validate(vtl_socket_t *vtl_sock, char *err_buf) {
 			
   	return rx_graft_id;
 }
-
-int vtl_close()

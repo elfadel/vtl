@@ -10,8 +10,8 @@
 
 #include "../launcher/launcher.h"
 
-#define BPF_TC_FILENAME         "../XTFsPool/egress_test_tf.o"
-#define BPF_XDP_FILENAME        "../XTFsPool/ingress_test_tf.o"
+#define BPF_TC_FILENAME         "../XTFsPool/egress_test_graft.o"
+#define BPF_XDP_FILENAME        "../XTFsPool/ingress_test_graft.o"
 #define BPF_HOOKER_FILENAME     "../XTFsPool/hooker_test_progs.o"
 
 #define INPUT_MODE              0x1

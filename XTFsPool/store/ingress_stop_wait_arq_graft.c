@@ -1,5 +1,3 @@
-/* SPDX-License-Identifier: GPL-2.0 */
-
 //INGRESS STOP-WAIT ARQ KTF
 
 #include <stdint.h>

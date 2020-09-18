@@ -1,4 +1,4 @@
-//EGRESS PARTIAL RELIABILITY KTF
+//EGRESS PARTIAL RELIABILITY GRAFT
 
 #include <stdbool.h>
 #include <stdint.h>

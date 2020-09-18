@@ -1,4 +1,4 @@
-//EGRESS GOBACKN ARQ KTF
+//EGRESS GOBACKN ARQ GRAFT
 
 #include <stdbool.h>
 #include <stdint.h>
