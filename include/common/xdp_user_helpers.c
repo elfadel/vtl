@@ -14,7 +14,6 @@
 #include "defines.h"
 #include "xdp_user_helpers.h"
 
-//TODO: remove it later.
 int verbose = 1; // Declared in defines.h
 
 /** util_user_maps.c **/
@@ -123,13 +122,11 @@ open_bpf_map_file(const char *pin_dir,
 	return fd;
 }
 
-
-// TODO: seem useless fonction
 /* Pinning maps under /sys/fs/bpf in subdir */
 static int
 pin_maps_in_bpf_object(struct bpf_object *bpf_obj, const char *subdir)
 {
-	char map_filename[PATH_MAX]; // Warning: Variable non utilisée
+	char map_filename[PATH_MAX];
 	char pin_dir[PATH_MAX];
 	int err, len;
 
@@ -139,32 +136,6 @@ pin_maps_in_bpf_object(struct bpf_object *bpf_obj, const char *subdir)
 		return EXIT_FAIL_OPTION;
 	}
 
-	// TODO : évaluer l'importance de ce bloc
-
-	// len = snprintf(map_filename, PATH_MAX, "%s/%s/%s",
-	// 	       pin_basedir, subdir, map_name);
-	// if (len < 0) {
-	// 	fprintf(stderr, "ERR: creating map_name\n");
-	// 	return EXIT_FAIL_OPTION;
-	// }
-
-	// /* Existing/previous XDP prog might not have cleaned up */
-	// if (access(map_filename, F_OK ) != -1 ) {
-	// 	if (verbose)
-	// 		printf(" - Unpinning (remove) prev maps in %s/\n",
-	// 		       pin_dir);
-
-	// 	/* Basically calls unlink(3) on map_filename */
-	// 	err = bpf_object__unpin_maps(bpf_obj, pin_dir);
-	// 	if (err) {
-	// 		fprintf(stderr, "ERR: UNpinning maps in %s\n", pin_dir);
-	// 		return EXIT_FAIL_BPF;
-	// 	}
-	// }
-	// if (verbose)
-	// 	printf(" - Pinning maps in %s/\n", pin_dir);
-
-
 	/* This will pin all maps in our bpf_object */
 	err = bpf_object__pin_maps(bpf_obj, pin_dir);
 	if (err)
@@ -173,8 +144,6 @@ pin_maps_in_bpf_object(struct bpf_object *bpf_obj, const char *subdir)
 	return 0;
 }
 
-
-//TODO: Should make a generic function to load bpf object file ?
 /**
  * Load bpf object file on XDP hook.
  * @param filename - file's name containing XDP program
@@ -211,7 +180,6 @@ load_xdp_object_file(const char *filename, int ifindex)
 	return bpf_obj;
 }
 
-//TODO: Should make a generic function ?
 /**
  * @desc
  * @param file - file's name containing XDP program
@@ -259,9 +227,6 @@ open_xdp_object(const char *file, int ifindex)
 	return obj;
 }
 
-// Charger le fichier ELF-BPF en réutilisant les maps
-// Epingler dans un fichier
-// Pour l'instant spécifique à xdp...changer plus tard!
 static struct bpf_object *
 load_xdp_object_file_reuse_maps(const char *file,
 				int ifindex,
@@ -310,7 +275,8 @@ xdp_link_attach(int ifindex, __u32 xdp_flags, int prog_fd)
 		__u32 old_flags = xdp_flags;
 
 		xdp_flags &= ~XDP_FLAGS_MODES;
-		xdp_flags |= (old_flags & XDP_FLAGS_SKB_MODE) ? XDP_FLAGS_DRV_MODE : XDP_FLAGS_SKB_MODE;
+		xdp_flags |= (old_flags & XDP_FLAGS_SKB_MODE) ? XDP_FLAGS_DRV_MODE : 
+								XDP_FLAGS_SKB_MODE;
 		err = bpf_set_link_xdp_fd(ifindex, -1, xdp_flags);
 		if (!err)
 			err = bpf_set_link_xdp_fd(ifindex, prog_fd, old_flags);
@@ -318,7 +284,7 @@ xdp_link_attach(int ifindex, __u32 xdp_flags, int prog_fd)
 	if (err < 0)
 	{
 		fprintf(stderr, "ERR: "
-				"ifindex(%d) link set xdp fd failed (%d): %s\n",
+			"ifindex(%d) link set xdp fd failed (%d): %s\n",
 			ifindex, -err, strerror(-err));
 
 		switch (-err)
@@ -326,15 +292,51 @@ xdp_link_attach(int ifindex, __u32 xdp_flags, int prog_fd)
 		case EBUSY:
 		case EEXIST:
 			fprintf(stderr, "Hint: XDP already loaded on device"
-					" use --force to swap/replace\n");
+				" use --force to swap/replace\n");
 			break;
 		case EOPNOTSUPP:
 			fprintf(stderr, "Hint: Native-XDP not supported"
-					" use --skb-mode or --auto-mode\n");
+				" use --skb-mode or --auto-mode\n");
 			break;
 		default:
 			break;
 		}
+		return EXIT_FAIL_XDP;
+	}
+
+	return EXIT_OK;
+}
+
+int
+xdp_generic_link_attach(const char *iface, const char *file, const char *sec_name) {
+	static char ip_cmd[256] = "ip";
+	char cmd[2048];
+
+	/* Step 1: Delete all xdp filter from *iface* */
+	memset(&cmd, 0, 2048);
+
+	snprintf(cmd, 2048, 
+		"%s link set dev %s xdpgeneric off", 
+		ip_cmd, iface);
+
+	if(system(cmd) == -1){
+		fprintf(stderr, "ERR: xdp_generic_link_attach() failed [1].\n%s\n", 
+			strerror(errno));
+
+		return EXIT_FAIL_XDP;
+	}
+
+	/* Step 2: Attach the new xdp filter */
+	memset(&cmd, 0, 2048);
+
+	snprintf(cmd, 2048, 
+		"%s link set dev %s xdpgeneric obj %s sec %s",
+		ip_cmd, iface, file, sec_name);
+
+	if(system(cmd) == -1) {
+		fprintf(stderr, "ERR: xdp_generic_link_attach() failed [2].\n%s\n", 
+			strerror(errno));
+
 		return EXIT_FAIL_XDP;
 	}
 
@@ -385,8 +387,31 @@ xdp_link_detach(int ifindex, __u32 xdp_flags, __u32 expected_prog_id)
 	return EXIT_OK;
 }
 
+
+int xdp_generic_link_detach(const char *iface){
+
+	static char ip_cmd[256] = "ip";
+	char cmd[2048];
+
+	/* Step 1: Delete all xdp filter from *iface* */
+	memset(&cmd, 0, 2048);
+
+	snprintf(cmd, 2048, 
+		"%s link set dev %s xdpgeneric off", 
+		ip_cmd, iface);
+
+	if(system(cmd) == -1){
+		fprintf(stderr, "ERR: xdp_generic_link_detach() failed [1].\n%s\n", 
+			strerror(errno));
+
+		return EXIT_FAIL_XDP;
+	}
+
+	return EXIT_OK;
+}
+
 struct bpf_object* load_bpf_and_xdp_attach(const char *filename, char *ifname, 
-											char *sec_name, __u32 xdp_flags, bool reuse_maps)
+						char *sec_name, __u32 xdp_flags, bool reuse_maps)
 {
 	struct bpf_program *bpf_prog;
 	struct bpf_object *bpf_obj;

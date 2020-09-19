@@ -1,4 +1,3 @@
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -16,7 +15,8 @@
 
 #define INPUT_MODE              0x1
 #define OUTPUT_MODE             0x2
-#define STOP_HOOKER             0x4
+#define START_HOOKER 		0x3
+#define STOP_HOOKER             0x3
 
 int menu_start(void)
 {
@@ -28,26 +28,22 @@ int menu_start(void)
         printf("->> 3- Exit KTF Orchestrator\n\n");
 
         printf("Enter your choice: ");
-        //scanf("%d", &choice);
         if(scanf("%d", &choice) != 1) {
             printf("ERROR: scanf()");
         }
 
         return choice;
-
 }
 
-int menu_mode(void)
+int menu_mode(int deploy)
 {
         int choice;
         printf("\n\tKTF Orchestrator\n\n");
         printf("Choose mode:\n");
-        printf("->> 1- Input mode (reception ~~ XDP)\n");
-        printf("->> 2- Output mode (emission ~~ TC)\n");
-        printf("->> 3- Activate Hooker\n");
-        printf("->> 4- Deactivate Hooker\n\n");
-
-        //4- return to menu start
+        printf("->> 1- Input mode\n");
+        printf("->> 2- Output mode\n");
+        deploy == 1 ? printf("->> 3- Activate Hooker\n\n"):
+        printf("->> 3- Deactivate Hooker\n\n");
 
         printf("Enter your choice: ");
         if(scanf("%d", &choice) != 1) {
@@ -55,7 +51,6 @@ int menu_mode(void)
         }
 
         return choice;
-
 }
 
 void select_interface(char *interface)
@@ -84,7 +79,7 @@ void select_interface(char *interface)
                 }
                 count++;
         }
-        //Ask user which device to use
+        
         printf("\nEnter the number of the device you want use : ");
         if(scanf("%d", &n) != 1) {
             printf("ERROR: scanf()");
@@ -94,10 +89,9 @@ void select_interface(char *interface)
 
 int deploy_tf(int mode)
 {
-        int ret; //use it
+        int ret;
         char interface[20];
 
-        //int xdp_flags = 0;
         struct xdp_config xdp_cfg = {0};
 
         struct tc_config tc_cfg = {0};
@@ -119,13 +113,11 @@ int deploy_tf(int mode)
                         return -1;
                 }
                 printf("Success\n");
-
                 break;
 
-        case 2 /* Output mode = tc; TODO: aligned with INPUT_MODE */:
+        case OUTPUT_MODE  /* tc */:
         {
                 select_interface(interface);
-                /* deploy tf on selected interface */
                 printf("\n\nDeploying TF on %s interface in output mode...\n", interface);
 
                 ret = launcher_load_graft_file(BPF_TC_FILENAME, interface);
@@ -138,14 +130,15 @@ int deploy_tf(int mode)
                 printf("Success\n");
                 break;
         }
-        case 3 /* TODO: aligned with INPUT_MODE */ :
 
+        case START_HOOKER:
             select_interface(interface);
             printf("[VTL_UI]: Enabling Hooker ...\n");
+
             if(system("mount -t bpf bpf /sys/fs/bpf/") == -1) /* consider to move to launcher */
                 printf("[VTL_UI]: WARN - unable to mount bpf map fs.\n");
+            
             ret = launcher_load_graft_file(BPF_HOOKER_FILENAME, interface);
-
             if(ret != 0) {
                 printf("[VTL_UI]: launcher_load_graft_file() -- failed to activate Hooker.\n");
                 return -1;
@@ -163,7 +156,7 @@ int deploy_tf(int mode)
 
 int remove_tf(int mode)
 {
-        int ret; //use it
+        int ret;
         char interface[20];
 
         int xdp_flags = 0;
@@ -172,16 +165,12 @@ int remove_tf(int mode)
         switch (mode)
         {
         case INPUT_MODE /* xdp */:
-                /* code */
-
-                /* select interface */
                 select_interface(interface);
-
-                /* Remove tf on selected interface */
                 printf("\n\nRemoving TF on %s interface in input mode...", interface);
 
                 xdp_flags &= ~XDP_FLAGS_MODES;   /* Clear flags */
                 xdp_flags |= XDP_FLAGS_SKB_MODE; /* Set   flag */
+
                 ret = launcher_unload_ingress_tf(interface, xdp_flags);
                 if (ret < 0) {
                         fprintf(stderr, "ERR: launcher_remove_xdp_tf failed\n");
@@ -192,12 +181,9 @@ int remove_tf(int mode)
                 break;
 
         case OUTPUT_MODE /* tc */:
-
-                /* select interface */
                 select_interface(interface);
-
-                /* Remove tf on selected interface */
                 printf("\n\nRemoving TF on %s interface in output mode...", interface);
+
                 ret = launcher_unload_egress_tf(&tc_cfg, interface, TC_EGRESS_ATTACH);
                 if (ret < 0) {
                         fprintf(stderr, "ERR: launcher_remove_tc_tf failed\n");
@@ -210,6 +196,7 @@ int remove_tf(int mode)
         case STOP_HOOKER:
             select_interface(interface);
             printf("\n\nDeactivating Hooker progs ...\n");
+
             launcher_unload_hooker_progs();
             ret = launcher_unload_listerner_tf(interface, 0);
             if(ret < 0) {
@@ -226,13 +213,12 @@ int remove_tf(int mode)
         }
 
         return 0;
-
 }
 
 void clear_screen(void)
 {
     if(system("clear") == -1) {
-        printf("[UI]: clear_screen() -- Unable to clear console.\n");
+        printf("[UI]: clear_screen() -- unable to clear console.\n");
     }
 }
 
@@ -243,7 +229,6 @@ int main(int argc, char const *argv[])
 
         int menu_choice;
         int mode;
-        //char enter = 0;
         char c;
 
         clear_screen();
@@ -259,7 +244,7 @@ int main(int argc, char const *argv[])
                 case 1 /* Deploy TF*/:
 
                         //TODO: Display TF list
-                        mode = menu_mode();
+                        mode = menu_mode(1);
 
                         ret = deploy_tf(mode);
                         if (ret < 0) {
@@ -275,12 +260,10 @@ int main(int argc, char const *argv[])
                         if (c == 'E') {
                                 menu_choice = 3;
                         }
-    
-                       // clear_screen(); // TODO: Fix.
-
                         break;
+
                 case 2 /* Remove TF */:
-                        mode = menu_mode();
+                        mode = menu_mode(2);
                         ret = remove_tf(mode);
                         if (ret < 0) {
                                 menu_choice = 3;
@@ -297,13 +280,11 @@ int main(int argc, char const *argv[])
                         }
 
                         clear_screen();
-
                         break;
 
                 case 3 /* program exit */:
                         //Temporary: remove all tf at program exit.
                         printf("Exit program\n");
-
                         break;
 
                 default:
@@ -311,7 +292,6 @@ int main(int argc, char const *argv[])
                 }
 
         } while (menu_choice != 3 /* Exit */);
-
 
         return 0;
 }

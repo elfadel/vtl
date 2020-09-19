@@ -77,9 +77,9 @@ static int __create_ip4_hdr(struct ip *iphdr, char *dst_ip, char *src_ip,
 	ip_flags[2] = 0; // More fragments following flag (1 bit)
 	ip_flags[3] = 0; // Fragmentation offset(13 bits)
 	iphdr->ip_off = htons((ip_flags[0] << 15)
-							+ (ip_flags[1] << 14)
-							+ (ip_flags[2] << 13)
-							+  ip_flags[3]);
+				+ (ip_flags[1] << 14)
+				+ (ip_flags[2] << 13)
+				+  ip_flags[3]);
 
 	// TTL (8 bits): default to maximum value
 	iphdr->ip_ttl = 255;
@@ -118,13 +118,14 @@ static void __fill_sockaddr_in(struct sockaddr_in *to, struct ip *iphdr) {
 static void __ip4_pkt_assemble(uint8_t *send_pkt, struct ip *iphdr,
 				vtl_hdr_t *vtlh, uint8_t *send_data, size_t send_data_len) 
 {
-	memcpy(send_pkt, iphdr, IP4_HDR_LEN);
 
+	memcpy(send_pkt, iphdr, IP4_HDR_LEN);
+	
 	// Next part of packet is upper layer protocol header: VTL header
 	memcpy((send_pkt + IP4_HDR_LEN), vtlh, sizeof(vtl_hdr_t));
-
+	
 	// Finally, add the VTL data, i.e. application payload
-	memcpy(send_pkt + IP4_HDR_LEN + sizeof(vtl_hdr_t), send_data, send_data_len);
+	memcpy((send_pkt + IP4_HDR_LEN + sizeof(vtl_hdr_t)), send_data, send_data_len);
 }
 
 static int __send_packet(int sock_fd, struct sockaddr_in *to, 

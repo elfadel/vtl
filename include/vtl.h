@@ -76,13 +76,14 @@ typedef enum {
 typedef struct {
 	int8_t gid;
 	vtl_pkt_type pkt_type;
+	size_t payload_len;
 	uint16_t checksum;
 	uint16_t seq_num; // TODO: Should be moved inside TF's algos. 
 } vtl_hdr_t;
 
 typedef struct {
 	size_t data_len;
-	uint8_t *data; // TODO: flexible array data[0]
+	uint8_t *data; // flexible array data[0]
 } vtl_payload_t;
 
 typedef struct {
@@ -210,11 +211,6 @@ static __always_inline char* vtl_opt_to_string(uint16_t v_opt_data) {
 static __always_inline uint16_t vtl_compute_tcp_stream_cookie(__u32 src_ip, __u32 dst_ip, __u32 src_port, __u32 dst_port) {
 	return (src_ip + dst_ip + src_port + dst_port)%MAX_HANDLED_TCP_STREAMS;
 }
-
-/*typedef struct {
-	uint8_t payload[403]; // x + 40
-} ugly_t;
-*/
 
 /*******************************************************************************
  Some VTL helpers... Note that VTL integrates many others directly to the kern.

@@ -37,6 +37,8 @@ int main(int argc, char **argv) {
 
 	vtl_host_role role = VTL_SENDER_ROLE;
 
+	vtl_sock = (vtl_socket_t *)malloc(sizeof(vtl_socket_t));
+
 	vtl_sock = vtl_init(role, src_ip, dst_ip, ifname, err_buf);
 	if(vtl_sock == NULL) {
 		fprintf(stderr, "%s", err_buf);
@@ -44,7 +46,7 @@ int main(int argc, char **argv) {
 		exit(EXIT_FAILURE);
 	}
 	
-	tx_file = fopen("../../files/file4K.txt", "rb");
+	tx_file = fopen("../../files/img16K.jpg", "rb");
 	if(tx_file == NULL) {
 		fprintf(stderr, "ERR: failed to open test file\n");
 		exit(EXIT_FAILURE);
@@ -59,10 +61,7 @@ int main(int argc, char **argv) {
 	}
 	memset(send_data, 0, DATASIZE*sizeof(uint8_t));
 
-	if(tx_file == NULL)
-		printf("FILE null\n");
-	int j = 0;
-	while(!feof(tx_file) && j < 4) { // Read till end of file
+	while(!feof(tx_file)) { // Read till end of file
 		send_data_s = fread(send_data, 1, DATASIZE, tx_file);
 		ret = vtl_send_data(vtl_sock, send_data, send_data_s, err_buf);
 		if(ret < 0) {
@@ -72,7 +71,6 @@ int main(int argc, char **argv) {
 		}
 		cnt_pkt++;
 		cnt_bytes += send_data_s;
-		j++;
 	} 
 
 	printf("Done\n\n");

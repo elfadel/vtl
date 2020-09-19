@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
 	}
 
 	static FILE *rx_file = NULL;
-	rx_file = fopen("../../files/out_file.txt", "wb");
+	rx_file = fopen("../../files/out_file.jpg", "wb");
 	if(rx_file == NULL) {
 		fprintf(stderr, "ERR: failed to open test file\n");
 		exit(EXIT_FAILURE);
@@ -74,12 +74,15 @@ int main(int argc, char **argv) {
 	}
 
 	size_t rx_data_len = 0;
+	int total_bytes = 0;
 	while(!global_exit) { // Continue to recv data till explicit exit (Ctrl+c)
 		vtl_recv_data(vtl_sock, rx_data, &rx_data_len, err_buf);
 		
 		fflush(stdout);
 		if(rx_data_len != 0) {
-			printf("Receive and write %ld bytes\n", rx_data_len);
+			total_bytes += (int)rx_data_len;
+			printf("Receive and write %ld bytes ", rx_data_len);
+			printf(" ==> Total = %d\n", total_bytes);
 			fwrite(rx_data, 1, rx_data_len, rx_file);
 			fflush(rx_file);
 		}

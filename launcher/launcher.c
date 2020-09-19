@@ -104,25 +104,47 @@ int launcher_unload_egress_tf(struct tc_config *cfg, char *interface, int flags)
 	int ifindex = if_nametoindex(interface);
 
 	if(!(ifindex)) {
-		snprintf(cfg->err_buf, ERR_BUFF_SIZE, "ERR: --egress \"%s\" not real or virt dev\n",
-		 					interface);
+		snprintf(cfg->err_buf, ERR_BUFF_SIZE, 
+			"ERR: --egress \"%s\" not real or virt dev\n",
+		 	interface);
+		
 		return -1;
 	}
 
 	strcpy(cfg->dev, interface);
-	printf("Unloading egress KTF on device %s...\n", cfg->dev);
+	printf("[LAUNCHER]: unloading egress KTF on device %s...\n", cfg->dev);
 	switch(flags) {
 		case TC_INGRESS_ATTACH:
 			return 0;
 			break;
+
 		case TC_EGRESS_ATTACH:
 			tc_remove_egress(cfg);
 			break;
+
 		default:
 			snprintf(cfg->err_buf, ERR_BUFF_SIZE,
-								"ERR: launcher_remove_egress_tf() failed, unknown flags.\n");
+				"[LAUNCHER]: ERR - launcher_remove_egress_tf() failed, unknown flags.\n");
 			return -1;
 			break;
+	}
+
+	printf("[LAUNCHER]: unloading listener KTF on device %s\n", interface);
+	int ret = xdp_generic_link_detach(interface);
+	if(ret != 0) {
+		return -1;
+	}
+
+	if(system("rm -r /sys/fs/bpf/ip") == -1) {
+		fprintf(stderr, "[LAUNCHER]: launcher_remove_egress_tf() failed [1].\n");
+	}
+
+	if(system("rm -r /sys/fs/bpf/tc") == -1) {
+		fprintf(stderr, "[LAUNCHER]: launcher_remove_egress_tf() failed [2].\n");
+	}
+
+	if(system("rm -r /sys/fs/bpf/xdp") == -1) {
+		fprintf(stderr, "[LAUNCHER]: launcher_remove_egress_tf() failed [3].\n");
 	}
 
 	return 0;
@@ -190,10 +212,15 @@ int launcher_unload_ingress_tf(char *interface, __u32 xdp_flags) {
 	return 0;
 }
 
-int launcher_load_listener_tf(const char *sec_name, struct bpf_insn *prog, int size, char *ifname, int xdp_flags) {
-	bool is_xdp_listener = (strncmp(sec_name, "listener_tf_sec", 15) == 0) || (strncmp(sec_name, "hooker_listener", 15) == 0);
+int launcher_load_listener_tf(const char *path, const char *sec_name, 
+				struct bpf_insn *prog, int size, char *ifname, int xdp_flags) {
+
+	bool is_xdp_listener = (strncmp(sec_name, "listener_tf_sec", 15) == 0) || 
+				(strncmp(sec_name, "hooker_listener", 15) == 0);
 	if(!is_xdp_listener) {
-		printf("[LAUNCHER]: launcher_load_listener_tf() -- the prog \"%s\" is not a listener. Loading failed.\n", sec_name);
+		printf("[LAUNCHER]: launcher_load_listener_tf() -- the prog "
+			"\"%s\" is not a listener. Loading failed.\n", sec_name);
+
 		return -1;
 	}
 
@@ -202,28 +229,45 @@ int launcher_load_listener_tf(const char *sec_name, struct bpf_insn *prog, int s
 	int fd;
 
 	if(progs_count == MAX_TF_PROGS) {
-		printf("[LAUNCHER]: launcher_load_listener_tf() -- MAX progs reached. Loading failed.\n");
-		return -1; // TODO: aligned with the others loading funcs
+		printf("[LAUNCHER]: launcher_load_listener_tf() " 
+			"-- MAX progs reached. Loading failed.\n");
+
+		return -1;
 	}
 
 	printf("[LAUNCHER]: Loading listener KTF ...\n");
 
-	fd = bpf_load_program(prog_type, prog, insns_cnt, license, kern_version, bpf_log_buff, ERR_BUFF_SIZE);
+	fd = bpf_load_program(prog_type, prog, insns_cnt, license, kern_version, 
+				bpf_log_buff, ERR_BUFF_SIZE);
 	if(fd < 0) {
-		printf("[LAUNCHER]: bpf_load_program() failed. -- err=%d\n%s\n", errno, bpf_log_buff);
+		printf("[LAUNCHER]: bpf_load_program() failed. -- err=%d\n%s\n", 
+			errno, bpf_log_buff);
+		
 		return -1;
 	}
 
 	progs_fd[progs_count++] = fd;
 
-	int ifindex = if_nametoindex(ifname);
-	if(!(ifindex)) {
-		printf("[LAUNCHER]: launcher_load_listener_tf() failed: \"%s\" not real or virt dev\n", ifname);
-		return -1;
+	if(strncmp(sec_name, "hooker_listener", 15) == 0) {
+
+		int ifindex = if_nametoindex(ifname);
+		if(!(ifindex)) {
+			printf("[LAUNCHER]: launcher_load_listener_tf() failed: \"%s\" " 
+				" not real or virt dev\n", ifname);
+			return -1;
+		}
+		if(xdp_link_attach(ifindex, xdp_flags, fd)) {
+			printf("[LAUNCHER]: launcher_load_listener_tf() failed -- " 
+				" Unable to attach prog to iface.\n");
+			return -1;
+		} 
 	}
-	if(xdp_link_attach(ifindex, xdp_flags, fd)) {
-		printf("[LAUNCHER]: launcher_load_listener_tf() failed -- Unable to attach prog to iface.\n");
-		return -1;
+	else {
+		if(xdp_generic_link_attach(ifname, path, sec_name)) {
+			printf("[LAUNCHER]: launcher_load_listener_tf() failed -- "
+				" Unable to attach generic prog.\n");
+			return -1;
+		}
 	}
 
 	printf("[LAUNCHER]: listener KTF loaded !\n");
@@ -237,11 +281,13 @@ int launcher_unload_listerner_tf(char *interface, __u32 xdp_flags) {
 }
 
 int launcher_load_hooker_progs(const char *sec_name, struct bpf_insn *prog, int prog_size) {
+
 	bool is_sockops = strncmp(sec_name, "hooker_sockops", 14) == 0;
 	bool is_rdctor = strncmp(sec_name, "hooker_redirector", 17) == 0;
 
 	if((!is_sockops && !is_rdctor) || (is_sockops && is_rdctor)) {
-		printf("[LAUNCHER]: launcher_load_hooker_progs() -- check the prog \"%s\" type. Loading failed.\n", sec_name);
+		printf("[LAUNCHER]: launcher_load_hooker_progs() -- check the prog \"%s\" "
+			" type. Loading failed.\n", sec_name);
 		return -1;
 	}
 
@@ -256,8 +302,8 @@ int launcher_load_hooker_progs(const char *sec_name, struct bpf_insn *prog, int 
 	if(*sec_name != '/') // No need for tail call
 		return 0;
 	sec_name++;
-	if(!isdigit(*sec_name)) {
-		printf("[LAUNCHER]: invalid prog number.\n"); // User doesn't follow naming convention
+	if(!isdigit(*sec_name)) { // User doesn't follow naming convention
+		printf("[LAUNCHER]: invalid prog number.\n");
 		return -1;
 	}
 
@@ -330,9 +376,11 @@ int launcher_load_hooker_progs(const char *sec_name, struct bpf_insn *prog, int 
 		switch(*sec_name) {
 			case '0':
 				printf("[LAUNCHER]: attaching Hooker skmsg prog ...\n");
-				ret = bpf_prog_attach(fd, maps_fd[0] /* <==> HK_SOCK_MAP */, BPF_SK_MSG_VERDICT, 0);
+				ret = bpf_prog_attach(fd, maps_fd[0] /* <==> HK_SOCK_MAP */, 
+							BPF_SK_MSG_VERDICT, 0);
 				if(ret) {
-					printf("[LAUNCHER]: failed to attach Hooker skmsg prog to sockmap\n");
+					printf("[LAUNCHER]: failed to attach Hooker skmsg "
+						" prog to sockmap\n");
 					return -1;
 				}
 				printf("[LAUNCHER]: sk_msg attached to sockmap %d!\n", maps_fd[0]);
@@ -340,9 +388,11 @@ int launcher_load_hooker_progs(const char *sec_name, struct bpf_insn *prog, int 
 
 			case '1':
 				printf("[LAUNCHER]: attaching Hooker skskb parser prog ...\n");
-				ret = bpf_prog_attach(fd, maps_fd[0] /* <==> HK_SOCK_MAP */, BPF_SK_SKB_STREAM_PARSER, 0);
+				ret = bpf_prog_attach(fd, maps_fd[0] /* <==> HK_SOCK_MAP */, 
+							BPF_SK_SKB_STREAM_PARSER, 0);
 				if(ret) {
-					printf("[LAUNCHER]: failed to attach Hooker skskb parser prog to sockmap\n");
+					printf("[LAUNCHER]: failed to attach Hooker skskb parser "
+						" prog to sockmap\n");
 					return -1;
 				}
 				printf("[LAUNCHER]: skskb parser attached to sockmap %d!\n", maps_fd[0]);
@@ -350,9 +400,11 @@ int launcher_load_hooker_progs(const char *sec_name, struct bpf_insn *prog, int 
 
 			case '2':
 				printf("[LAUNCHER]: attaching Hooker skskb verdict prog ...\n");
-				ret = bpf_prog_attach(fd, maps_fd[0] /* <==> HK_SOCK_MAP */, BPF_SK_SKB_STREAM_VERDICT, 0);
+				ret = bpf_prog_attach(fd, maps_fd[0] /* <==> HK_SOCK_MAP */, 
+							BPF_SK_SKB_STREAM_VERDICT, 0);
 				if(ret) {
-					printf("[LAUNCHER]: failed to attach Hooker skskb verdict prog to sockmap\n");
+					printf("[LAUNCHER]: failed to attach Hooker skskb verdict "
+						" prog to sockmap\n");
 					return -1;
 				}
 				printf("[LAUNCHER]: skskb verdict attached to sockmap %d!\n", maps_fd[0]);
@@ -364,8 +416,7 @@ int launcher_load_hooker_progs(const char *sec_name, struct bpf_insn *prog, int 
 		}
 	}
 
-	// There is not tail call currently
-	//return __populate_prog_array(sec_name, fd);
+	return __populate_prog_array(sec_name, fd);
 	return 0;
 }
 
@@ -373,7 +424,9 @@ int launcher_unload_hooker_progs() {
 
 	printf("[LAUNCHER]: detaching sk_ops...\n");
 
-	if(system("bpftool cgroup detach \"/sys/fs/cgroup/unified/\" sock_ops pinned \"/sys/fs/bpf/skops\"") == -1) {
+	if(system("bpftool cgroup detach \"/sys/fs/cgroup/unified/\" " 
+			" sock_ops pinned \"/sys/fs/bpf/skops\"") == -1) {
+
 		printf("[LAUNCHER]: failed to detach sk_ops\n");
 		perror("launcher_unload_hooker_progs");
 		return -1;
@@ -395,9 +448,8 @@ int launcher_unload_hooker_progs() {
 	return 0;
 }
 
-static int __load_maps(struct bpf_map_data *maps, int nr_maps,
-		     fixup_map_cb fixup_map) 
-{
+static int __load_maps(struct bpf_map_data *maps, int nr_maps, fixup_map_cb fixup_map) {
+	
 	int i, numa_node;
 
 	for (i = 0; i < nr_maps; i++) {
@@ -443,7 +495,8 @@ static int __load_maps(struct bpf_map_data *maps, int nr_maps,
 		if (maps[i].def.type == BPF_MAP_TYPE_PROG_ARRAY)
 			prog_array_fd = maps_fd[i];
 		if(maps[i].def.type == BPF_MAP_TYPE_SOCKHASH) {
-			printf("[LAUNCHER]: pinning SOCKMAP fd = %d to %s\n", maps_fd[i], pinned_skmap_file);
+			printf("[LAUNCHER]: pinning SOCKMAP fd = %d to %s\n", 
+				maps_fd[i], pinned_skmap_file);
 			int ret = bpf_obj_pin(maps_fd[i], pinned_skmap_file);
 			if(ret)
 				printf("[LAUNCHER]: WARN - failed to pin sockmap. err=%s\n",
@@ -452,7 +505,8 @@ static int __load_maps(struct bpf_map_data *maps, int nr_maps,
 				printf("[LAUNCHER]: sockmap pinned !\n");
 		}
 		if(strcmp(maps[i].name, "APP_HASH_ID_MAP") == 0) {
-			printf("[LAUNCHER]: pinning app_info_map fd = %d to %s\n", maps_fd[i], pinned_appli_file);
+			printf("[LAUNCHER]: pinning app_info_map fd = %d to %s\n", maps_fd[i], 
+				pinned_appli_file);
 			int ret = bpf_obj_pin(maps_fd[i], pinned_appli_file);
 			if(ret)
 				printf("[LAUNCHER]: WARN - failed to pin applimap. err=%s\n",
@@ -474,7 +528,7 @@ static int __load_maps(struct bpf_map_data *maps, int nr_maps,
 }
 
 static int __get_sec(Elf *elf, int i, GElf_Ehdr *ehdr, char **shname,
-					GElf_Shdr *shdr, Elf_Data **data)
+			GElf_Shdr *shdr, Elf_Data **data)
 {
 	Elf_Scn *scn;
 	scn = elf_getscn(elf, i);
@@ -556,7 +610,7 @@ static int __cmp_symbols(const void *l, const void *r)
 }
 
 static int __load_elf_maps_section(struct bpf_map_data *maps, int maps_shndx,
-									Elf *elf, Elf_Data *symbols, int strtabidx)
+					Elf *elf, Elf_Data *symbols, int strtabidx)
 {
 	int map_sz_elf, map_sz_copy;
 	bool validate_zero = false;
@@ -668,6 +722,7 @@ static int __load_elf_maps_section(struct bpf_map_data *maps, int maps_shndx,
  * @return: 	int - zero on success
 */
 int launcher_load_graft_file(const char *path, char *ifname) {
+
 	int fd, i, maps_shndx = -1, nr_maps = 0, ret, strtabidx = -1;
 	char *shname, *shname_prog;
 	Elf *elf;
@@ -703,8 +758,8 @@ int launcher_load_graft_file(const char *path, char *ifname) {
 
 		if(0) /* helpful for llvm debugging */
 			printf("section %d:%s data %p size %zd link %d flags %d\n", 
-					i, shname, data->d_buf, data->d_size, 
-					shdr.sh_link, (int) shdr.sh_flags);
+				i, shname, data->d_buf, data->d_size, 
+				shdr.sh_link, (int) shdr.sh_flags);
 
 		if(strcmp(shname, "license") == 0) {
 			processed_sec[i] = true;
@@ -713,7 +768,8 @@ int launcher_load_graft_file(const char *path, char *ifname) {
 		else if(strcmp(shname, "version") == 0) {
 			processed_sec[i] = true;
 			if(data->d_size != sizeof(int)) {
-				printf("invalid size of version section %zd\n\n", data->d_size);
+				printf("invalid size of version section %zd\n\n",
+					data->d_size);
 				return 1;
 			}
 		}
@@ -740,10 +796,10 @@ int launcher_load_graft_file(const char *path, char *ifname) {
 
 	if(data_maps) {
 		nr_maps = __load_elf_maps_section(maps_data, maps_shndx, elf, 
-											symbols, strtabidx);
+							symbols, strtabidx);
 		if(nr_maps < 0) {
 			printf("Error: Failed loading ELF maps (errno:%d):%s\n", 
-					nr_maps, strerror(-nr_maps));
+				nr_maps, strerror(-nr_maps));
 			goto done;
 		}
 		if(__load_maps(maps_data, nr_maps, NULL)) // NOTE: modified line
@@ -766,7 +822,7 @@ int launcher_load_graft_file(const char *path, char *ifname) {
 
 			// Locate prog sec that need map fixup (relocations)
 			if(__get_sec(elf, shdr.sh_info, &ehdr, &shname_prog, 
-						&shdr_prog, &data_prog))
+					&shdr_prog, &data_prog))
 				continue;
 
 			if(shdr_prog.sh_type != SHT_PROGBITS || 
@@ -777,7 +833,7 @@ int launcher_load_graft_file(const char *path, char *ifname) {
 			processed_sec[i] = true; // relo section
 
 			if(__parse_relo_and_apply(data, symbols, &shdr, insns, 
-									maps_data, nr_maps))
+							maps_data, nr_maps))
 				continue;
 		}
 	}
@@ -816,13 +872,15 @@ int launcher_load_graft_file(const char *path, char *ifname) {
 			// Call XDP loader 2
 			printf("[LAUNCHER]: Trying to load listener KTF %d !\n", i);
 			
-			if(launcher_load_listener_tf(shname, data->d_buf, data->d_size, ifname, 0) != 0) {
+			if(launcher_load_listener_tf(path, shname, data->d_buf, 
+							data->d_size, ifname, 0) != 0) {
 				goto done;
 			}
 			else 
 				ret = 0;
 		}
-		else if((memcmp(shname, "hooker_sockops", 14) == 0) || (memcmp(shname, "hooker_redirector", 17) == 0)) {
+		else if((memcmp(shname, "hooker_sockops", 14) == 0) || 
+			(memcmp(shname, "hooker_redirector", 17) == 0)) {
 
 			if(launcher_load_hooker_progs(shname, data->d_buf, data->d_size) != 0) {
 				goto done;
@@ -831,7 +889,8 @@ int launcher_load_graft_file(const char *path, char *ifname) {
 				ret = 0;
 		}
 		else if(memcmp(shname, "hooker_listener", 15) == 0) {
-			if(launcher_load_listener_tf(shname, data->d_buf, data->d_size, ifname, 0) != 0) {
+			if(launcher_load_listener_tf(path, shname, data->d_buf, 
+							data->d_size, ifname, 0) != 0) {
 				goto done;
 			}
 			else

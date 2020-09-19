@@ -119,11 +119,11 @@ vtl_socket_t* vtl_init(vtl_host_role role, char *src_ip, char *dst_ip, char *ifn
 int vtl_send_data(vtl_socket_t *vtl_sock, uint8_t *data, size_t data_len, char *err_buf) {
 	int ret;
 
-	printf("vtl_send_data(): START\n");
-
 	// Fill application payload
 	vtl_sock->send_data = data;
 	vtl_sock->send_data_len = data_len;
+
+	vtl_sock->vtlh.payload_len = data_len;
 
 	// Send VTL packet
 	ret = dbr_send(vtl_sock->af_inet_sock, vtl_sock->send_pkt, &vtl_sock->vtlh, &vtl_sock->iphdr, 
@@ -133,7 +133,6 @@ int vtl_send_data(vtl_socket_t *vtl_sock, uint8_t *data, size_t data_len, char *
 		return -1;
 	}
 
-	printf("vtl_send_data(): END !\n");
 	return 0;
 }
 

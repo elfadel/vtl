@@ -2,15 +2,16 @@
 
 /*
 * @file :		launcher.h
-* @authors :	El-Fadel Bonfoh, Cedric Tape
+* @authors :		El-Fadel Bonfoh, Cedric Tape
 * @date :		12/2019
-* @version :	1.0
+* @version :		1.0
 * @brief :
 */
 #pragma once
 
 #include <assert.h>
-//#include <bpf/bpf.h> TODO: fix in vtl_ui.c, conflict with pcap.h. bpf.h contains bpf_map_update_elem()
+//#include <bpf/bpf.h> TODO: fix in vtl_ui.c, conflict with pcap.h. 
+// bpf.h contains bpf_map_update_elem()
 #include <errno.h>
 #include <fcntl.h>
 #include <gelf.h>
@@ -25,7 +26,7 @@
 
 #define BPF_FILE_NAME_SIZE 			512
 #define MAX_TF_PROGS 				32 // one way max ???
-#define MAX_MAPS					32 // per TF or overall VTL ?
+#define MAX_MAPS				32 // per TF or overall VTL ?
 #define TC_INGRESS_ATTACH 			0x0
 #define TC_EGRESS_ATTACH 			0x1
 
@@ -59,11 +60,13 @@ typedef void (*fixup_map_cb)(struct bpf_map_data *map, int idx);
 
 // NOTE: load = (load + attach)
 /* egress TF loader */
-int launcher_load_egress_tf(const char *tf_file, char *interface, char* sec_name);
+int launcher_load_egress_tf(const char *tf_file, char *interface, 
+				char* sec_name);
 int launcher_unload_egress_tf(struct tc_config *cfg, char *interface, int flags);
 
 /* ingress TF loader */
-int launcher_load_ingress_tf(const char *tf_file, char *interface, char *sec_name, __u32 xdp_flags);
+int launcher_load_ingress_tf(const char *tf_file, char *interface, 
+				char *sec_name, __u32 xdp_flags);
 int launcher_unload_ingress_tf(char *interface, __u32 xdp_flags);
 
 /* listener TF loader 
@@ -71,7 +74,8 @@ int launcher_unload_ingress_tf(char *interface, __u32 xdp_flags);
  * Note: Serve also to load xdp part of hooker prog !
  *
 */
-int launcher_load_listener_tf(const char *sec_name, struct bpf_insn *prog, int size, char *ifname, int xdp_flags);
+int launcher_load_listener_tf(const char *path,const char *sec_name, 
+				struct bpf_insn *prog, int size, char *ifname, int xdp_flags);
 int launcher_unload_listerner_tf(char *interface, __u32 xdp_flags);
 
 int launcher_load_hooker_progs(const char *sec_name, struct bpf_insn *prog, int prog_size);

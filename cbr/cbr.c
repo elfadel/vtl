@@ -38,6 +38,8 @@ static long __get_map_fd(const char* map_filename) {
 
 int cbr_create_raw_sock(int domain, int proto, char *err_buf) {
 
+	printf("[CBR]: cbr_create_raw_sock() called !\n");
+
 	int sock_fd;
 	long ret, ack_map_fd, seq_map_fd;
 
