@@ -2485,15 +2485,16 @@ union bpf_attr {
 	FN(map_delete_elem),		\
 	FN(probe_read),			\
 	FN(ktime_get_ns),		\
-	FN(vtl_start_timer), \
+	FN(vtl_start_timer), 		\
 	FN(trace_printk),		\
 	FN(get_prandom_u32),		\
 	FN(get_smp_processor_id),	\
 	FN(skb_store_bytes),		\
+	FN(vtl_store_bytes), 		\
 	FN(l3_csum_replace),		\
 	FN(l4_csum_replace),		\
 	FN(tail_call),			\
-	FN(vtl_nic_tx), 			\
+	FN(vtl_nic_tx), 		\
 	FN(clone_redirect),		\
 	FN(get_current_pid_tgid),	\
 	FN(get_current_uid_gid),	\

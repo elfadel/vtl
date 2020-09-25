@@ -26,6 +26,7 @@
 #define VTL_HDR_LEN 				0x14 
 #define IP4_HDR_LEN 				0x14
 #define VTL_DATA_SIZE 				0x400
+#define ON_WIRE_SIZE				0x43A
 #define MAX_HANDLED_TCP_STREAMS 		0x10000 /* 65536 */
 #define MAX_PROFILING_TRIES 			5
 
@@ -86,9 +87,9 @@ typedef struct {
 	uint8_t *data; // flexible array data[0]
 } vtl_payload_t;
 
+// TODO: make flexible
 typedef struct {
-	vtl_hdr_t hdr;
-	vtl_payload_t payload;
+	uint8_t payload[ON_WIRE_SIZE];
 } vtl_pkt_t;
 
 /*********************************

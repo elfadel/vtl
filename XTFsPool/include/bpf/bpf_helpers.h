@@ -52,8 +52,7 @@ static int (*bpf_get_current_comm)(void *buf, int buf_size) =
 static unsigned long long (*bpf_perf_event_read)(void *map,
 						 unsigned long long flags) =
 	(void *) BPF_FUNC_perf_event_read;
-static int (*bpf_vtl_nic_tx)(void *ctx, int ifindex,
-															unsigned long long wait_time, int flags) =
+static int (*bpf_vtl_nic_tx)(void *ctx, int ifindex, unsigned long long wait_time, int flags) =
 	(void *) BPF_FUNC_vtl_nic_tx;
 static int (*bpf_clone_redirect)(void *ctx, int ifindex, int flags) =
 	(void *) BPF_FUNC_clone_redirect;
@@ -238,6 +237,8 @@ static int (*bpf_skb_load_bytes_relative)(void *ctx, int off, void *to, int len,
 	(void *) BPF_FUNC_skb_load_bytes_relative;
 static int (*bpf_skb_store_bytes)(void *ctx, int off, void *from, int len, int flags) =
 	(void *) BPF_FUNC_skb_store_bytes;
+static int (*bpf_vtl_store_bytes)(void *ctx, int off, void *from, int len, int flags) =
+	(void *) BPF_FUNC_vtl_store_bytes;
 static int (*bpf_l3_csum_replace)(void *ctx, int off, int from, int to, int flags) =
 	(void *) BPF_FUNC_l3_csum_replace;
 static int (*bpf_l4_csum_replace)(void *ctx, int off, int from, int to, int flags) =
