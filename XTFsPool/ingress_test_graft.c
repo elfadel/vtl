@@ -3,7 +3,6 @@
 //INGRESS GOBACKN ARQ GRAFT
 
 #include <stdint.h>
-#include <linux/if_ether.h>
 #include <netinet/ip.h>
 #include <linux/bpf.h>
 
@@ -12,20 +11,20 @@
 
 #include "../include/vtl.h"
 
-#define WND_SIZE                4
+#define WND_SIZE                16
 
 struct bpf_map_def SEC("maps") xsks_map = {
-        .type = BPF_MAP_TYPE_XSKMAP,
-        .key_size = sizeof(int),
-        .value_size = sizeof(int),
-        .max_entries = 64,
+        .type           = BPF_MAP_TYPE_XSKMAP,
+        .key_size       = sizeof(int),
+        .value_size     = sizeof(int),
+        .max_entries    = 64,
 };
 
 struct bpf_map_def SEC("maps") NUM_ACK_MAP = {
-        .type = BPF_MAP_TYPE_ARRAY,
-        .key_size = sizeof(unsigned int),
-        .value_size = sizeof(uint16_t),
-        .max_entries = 1,
+        .type           = BPF_MAP_TYPE_ARRAY,
+        .key_size       = sizeof(unsigned int),
+        .value_size     = sizeof(uint16_t),
+        .max_entries    = 1,
 };
 
 static __always_inline void swap_src_dst_mac(void *data) {
@@ -54,61 +53,36 @@ int xdp_sock_prog(struct xdp_md *ctx) {
         void *data_end = (void *)(long)ctx->data_end;
 
         struct ethhdr *eth = (struct ethhdr *)data;
-        if (eth + 1 > data_end) {
-                bpf_printk("ETH: malformed header.\n");
+        if (eth + 1 > data_end)
                 return XDP_DROP;
-        }
 
         struct iphdr *iph = (struct iphdr *)(eth + 1);
-        if (iph + 1 > data_end) {
-                bpf_printk("IPH: malformed header.\n");
+        if (iph + 1 > data_end)
                 return XDP_DROP;
-        }
 
         if(iph->protocol != IPPROTO_VTL) {
                 return XDP_PASS;
         }
 
         vtl_hdr_t *vtlh = (vtl_hdr_t *)(iph + 1);
-        if(vtlh + 1 > data_end){
-                bpf_printk("VTLH: malformed header.\n");
+        if(vtlh + 1 > data_end)
                 return XDP_DROP;
-        }
-
-        uint8_t *d = (uint8_t *)(vtlh + 1);
-        if(d + 1 > data_end) {
-                bpf_printk("VTL layer: malformed payload.\n");
-                return XDP_DROP;
-        }
 
         ack_num = (uint16_t *) bpf_map_lookup_elem(&NUM_ACK_MAP, &index);
-        if(!ack_num) {
-                bpf_printk("KTF: unable to read NUM_ACK_MAP.\n");
+        if(!ack_num)
                 return XDP_PASS;
-        }
 
         uint16_t recv_csum = vtlh->checksum;
 
-        int y = 0;
-        uint8_t sum = 0;
-        for(y = 0; y < vtlh->payload_len; y++) {
-
-                if(y > VTL_DATA_SIZE)
-                        break;
-
-                uint8_t *block = (uint8_t *)(d + y - 1);
-                if(block + 1 > data_end)
-                        return XDP_DROP;
-                sum ^= *block;
-        }
-        uint16_t compute_csum = sum;
+        uint16_t compute_csum = 0;
+        if(vtl_csum(data, data_end, &compute_csum) == -1)
+                return XDP_PASS;
 
         if(recv_csum == compute_csum && 
                 *ack_num == vtlh->seq_num) {
 
                 if (bpf_map_lookup_elem(&xsks_map, &xsk_index)) {
 
-                        bpf_printk("Packet %d received in sequence.\n", vtlh->seq_num);
                         (*ack_num)++;
                         *ack_num %= WND_SIZE;
                         bpf_map_update_elem(&NUM_ACK_MAP, &index, ack_num, BPF_ANY);
@@ -117,11 +91,6 @@ int xdp_sock_prog(struct xdp_md *ctx) {
                 }
         }
         else {
-                if(recv_csum != compute_csum)
-                        bpf_printk("Packet %d corrupted.\n", vtlh->seq_num);
-                if(*ack_num != vtlh->seq_num)
-                        bpf_printk("Packet %d not in sequence.\n", vtlh->seq_num);
-
                 swap_src_dst_mac(eth);
                 __be32 temp_ip = iph->saddr;
                 iph->saddr = iph->daddr;
@@ -129,10 +98,9 @@ int xdp_sock_prog(struct xdp_md *ctx) {
 
                 vtlh->pkt_type = NACK;
 
-                // Trim NACK packet
-                bpf_xdp_adjust_head(ctx, -vtlh->payload_len);
+                // Trim NACK packet. TODO: add to ACK and update ip.len
+                bpf_xdp_adjust_tail(ctx, -vtlh->payload_len);
 
-                bpf_printk("Packet %d deleted.\n",vtlh->seq_num);
                 return XDP_TX;
         }
 

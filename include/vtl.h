@@ -8,10 +8,11 @@
 
 #pragma once
 
+#include <linux/if_ether.h>
 #include <linux/types.h>
-#include <net/if.h> 			// struct ifreq
-#include <netinet/ip.h> 		// struct ip and IP_MAXPACKET (which is 65535)
-#include <stdint.h> 			// For uintX_t
+#include <net/if.h> 			
+#include <netinet/ip.h> 		
+#include <stdint.h> 			
 
 //deps
 #include "../../../nDPI/src/include/ndpi_api.h"
@@ -169,6 +170,10 @@ enum tcp_stream_profil {
 	UNKNOWN_STREAM_PROFIL,
 };
 
+/*******************************************************************************
+ Some VTL helpers... Note that VTL integrates many others directly to the kern.
+*********************************************************************************/
+
 static __always_inline char* vtl_opt_to_string(uint16_t v_opt_data) {
 	char s[] = "UNKNOWN_VTL_OPTION"; // TODO: Not safe. Fix !
 	switch(v_opt_data) {
@@ -213,6 +218,51 @@ static __always_inline uint16_t vtl_compute_tcp_stream_cookie(__u32 src_ip, __u3
 	return (src_ip + dst_ip + src_port + dst_port)%MAX_HANDLED_TCP_STREAMS;
 }
 
-/*******************************************************************************
- Some VTL helpers... Note that VTL integrates many others directly to the kern.
-*********************************************************************************/
+static __always_inline int vtl_csum(void* data, void* data_end, uint16_t *csum) {
+
+	int y = 0;
+	uint8_t sum = 0;
+
+	struct ethhdr *eth = (struct ethhdr *)data;
+  	if(eth + 1 > data_end) {
+    		bpf_printk("vtl_csum(): malformed ETH header.\n");
+    		return -1;
+  	}
+
+  	struct iphdr *iph = (struct iphdr *)(eth + 1);
+  	if(iph + 1 > data_end) {
+    		bpf_printk("vtl_csum(): malformed IP header.\n");
+    		return -1;
+  	}
+
+  	if(iph->protocol != IPPROTO_VTL) {
+    		return -1;
+  	}
+
+  	vtl_hdr_t *vtlh = (vtl_hdr_t *)(iph + 1);
+  	if(vtlh + 1 > data_end) {
+    		bpf_printk("vtl_csum(): malformed VTL header.\n");
+    		return -1;
+  	}
+
+  	uint8_t* d = (uint8_t *)(vtlh + 1);
+  	if(d + 1 > data_end) {
+    		bpf_printk("VTL layer: malformed payload.\n");
+    		return -1;
+  	}
+
+  	for(y = 0; y < vtlh->payload_len; y++) {
+
+  		if(y > VTL_DATA_SIZE)
+  			break;
+
+    		uint8_t *block = (uint8_t *)(d + y - 1);
+    		if(block + 1 > data_end) {
+      			return -1;
+    		}
+    		sum ^= *block;
+  	}
+  	*csum = (uint16_t) sum;
+
+  	return 0;
+}

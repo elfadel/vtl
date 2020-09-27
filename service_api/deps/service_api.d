@@ -1,4 +1,5 @@
-vtl_server: vtl_server.c /usr/include/stdc-predef.h /usr/include/stdio.h \
+service_api.o: service_api.c /usr/include/stdc-predef.h \
+ /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/x86_64-linux-gnu/sys/cdefs.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
@@ -15,7 +16,9 @@ vtl_server: vtl_server.c /usr/include/stdc-predef.h /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/types/__mbstate_t.h \
  /usr/lib/gcc/x86_64-linux-gnu/7/include/stdarg.h \
  /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
- /usr/include/x86_64-linux-gnu/bits/sys_errlist.h /usr/include/stdlib.h \
+ /usr/include/x86_64-linux-gnu/bits/sys_errlist.h \
+ /usr/include/x86_64-linux-gnu/bits/stdio.h \
+ /usr/include/x86_64-linux-gnu/bits/stdio2.h /usr/include/stdlib.h \
  /usr/include/x86_64-linux-gnu/bits/waitflags.h \
  /usr/include/x86_64-linux-gnu/bits/waitstatus.h \
  /usr/include/x86_64-linux-gnu/bits/floatn.h \
@@ -36,25 +39,39 @@ vtl_server: vtl_server.c /usr/include/stdc-predef.h /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/types/__sigset_t.h \
  /usr/include/x86_64-linux-gnu/bits/types/struct_timeval.h \
  /usr/include/x86_64-linux-gnu/bits/types/struct_timespec.h \
+ /usr/include/x86_64-linux-gnu/bits/select2.h \
  /usr/include/x86_64-linux-gnu/sys/sysmacros.h \
  /usr/include/x86_64-linux-gnu/bits/sysmacros.h \
  /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h \
  /usr/include/x86_64-linux-gnu/bits/thread-shared-types.h \
  /usr/include/x86_64-linux-gnu/bits/pthreadtypes-arch.h \
- /usr/include/alloca.h /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
- /usr/include/string.h \
+ /usr/include/alloca.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib.h /usr/include/string.h \
  /usr/include/x86_64-linux-gnu/bits/types/locale_t.h \
  /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h \
- /usr/include/strings.h ../../service_api/service_api.h \
- ../../service_api/../include/vtl.h /usr/include/linux/if_ether.h \
- /usr/include/linux/types.h /usr/include/x86_64-linux-gnu/asm/types.h \
+ /usr/include/strings.h \
+ /usr/include/x86_64-linux-gnu/bits/strings_fortified.h \
+ /usr/include/x86_64-linux-gnu/bits/string_fortified.h \
+ /usr/include/unistd.h /usr/include/x86_64-linux-gnu/bits/posix_opt.h \
+ /usr/include/x86_64-linux-gnu/bits/environments.h \
+ /usr/include/x86_64-linux-gnu/bits/confname.h \
+ /usr/include/x86_64-linux-gnu/bits/getopt_posix.h \
+ /usr/include/x86_64-linux-gnu/bits/getopt_core.h \
+ /usr/include/x86_64-linux-gnu/bits/unistd.h \
+ ../include/headers/linux/if_link.h /usr/include/linux/types.h \
+ /usr/include/x86_64-linux-gnu/asm/types.h \
  /usr/include/asm-generic/types.h /usr/include/asm-generic/int-ll64.h \
  /usr/include/x86_64-linux-gnu/asm/bitsperlong.h \
  /usr/include/asm-generic/bitsperlong.h /usr/include/linux/posix_types.h \
  /usr/include/linux/stddef.h \
  /usr/include/x86_64-linux-gnu/asm/posix_types.h \
  /usr/include/x86_64-linux-gnu/asm/posix_types_64.h \
- /usr/include/asm-generic/posix_types.h /usr/include/net/if.h \
+ /usr/include/asm-generic/posix_types.h /usr/include/linux/netlink.h \
+ /usr/include/linux/kernel.h /usr/include/linux/sysinfo.h \
+ /usr/include/linux/socket.h service_api.h ../include/vtl.h \
+ /usr/include/linux/if_ether.h /usr/include/net/if.h \
  /usr/include/x86_64-linux-gnu/sys/socket.h \
  /usr/include/x86_64-linux-gnu/bits/types/struct_iovec.h \
  /usr/include/x86_64-linux-gnu/bits/socket.h \
@@ -65,14 +82,15 @@ vtl_server: vtl_server.c /usr/include/stdc-predef.h /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/asm/sockios.h \
  /usr/include/asm-generic/sockios.h \
  /usr/include/x86_64-linux-gnu/bits/types/struct_osockaddr.h \
- /usr/include/netinet/ip.h /usr/include/netinet/in.h \
+ /usr/include/x86_64-linux-gnu/bits/socket2.h /usr/include/netinet/ip.h \
+ /usr/include/netinet/in.h \
  /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h \
  /usr/include/x86_64-linux-gnu/bits/in.h \
  /usr/lib/gcc/x86_64-linux-gnu/7/include/stdint.h /usr/include/stdint.h \
  /usr/include/x86_64-linux-gnu/bits/wchar.h \
- ../../service_api/../include/../../../nDPI/src/include/ndpi_api.h \
- ../../service_api/../include/../../../nDPI/src/include/ndpi_main.h \
- ../../service_api/../include/../../../nDPI/src/include/ndpi_includes.h \
+ ../include/../../../nDPI/src/include/ndpi_api.h \
+ ../include/../../../nDPI/src/include/ndpi_main.h \
+ ../include/../../../nDPI/src/include/ndpi_includes.h \
  /usr/include/ctype.h /usr/include/time.h \
  /usr/include/x86_64-linux-gnu/bits/time.h \
  /usr/include/x86_64-linux-gnu/bits/types/struct_tm.h \
@@ -110,23 +128,37 @@ vtl_server: vtl_server.c /usr/include/stdc-predef.h /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/setjmp.h /usr/include/arpa/inet.h \
  /usr/include/x86_64-linux-gnu/sys/time.h /usr/include/netinet/tcp.h \
  /usr/include/netinet/udp.h /usr/include/byteswap.h \
- ../../service_api/../include/../../../nDPI/src/include/ndpi_define.h \
- ../../service_api/../include/../../../nDPI/src/include/ndpi_config.h \
- ../../service_api/../include/../../../nDPI/src/include/ndpi_protocol_ids.h \
- ../../service_api/../include/../../../nDPI/src/include/ndpi_typedefs.h \
- ../../service_api/../include/../../../nDPI/src/include/ndpi_api.h \
- ../../service_api/../include/../../../nDPI/src/include/ndpi_protocols.h \
- ../../service_api/../include/../../../nDPI/src/include/ndpi_main.h \
- ../../service_api/../include/./common/xdp_user_helpers.h \
+ ../include/../../../nDPI/src/include/ndpi_define.h \
+ ../include/../../../nDPI/src/include/ndpi_config.h \
+ ../include/../../../nDPI/src/include/ndpi_protocol_ids.h \
+ ../include/../../../nDPI/src/include/ndpi_typedefs.h \
+ ../include/../../../nDPI/src/include/ndpi_api.h \
+ ../include/../../../nDPI/src/include/ndpi_protocols.h \
+ ../include/../../../nDPI/src/include/ndpi_main.h \
+ ../include/./common/xdp_user_helpers.h \
  /usr/lib/gcc/x86_64-linux-gnu/7/include/stdbool.h \
- ../../service_api/../include/./common/xsk_user_helpers.h \
- ../../lib/libbpf/src/build/usr/include/bpf/xsk.h \
- ../../include/headers/linux/if_xdp.h \
- ../../lib/libbpf/src/build/usr/include/bpf/libbpf.h \
- ../../include/headers/linux/bpf.h /usr/include/linux/bpf_common.h \
- ../../lib/libbpf/src/build/usr/include/bpf/libbpf_common.h \
- ../../lib/libbpf/src/build/usr/include/bpf/libbpf_util.h \
- ../../service_api/../include/./common/defines.h
+ ../include/./common/xsk_user_helpers.h \
+ ../lib/libbpf/src/build/usr/include/bpf/xsk.h \
+ ../include/headers/linux/if_xdp.h \
+ ../lib/libbpf/src/build/usr/include/bpf/libbpf.h \
+ ../include/headers/linux/bpf.h /usr/include/linux/bpf_common.h \
+ ../lib/libbpf/src/build/usr/include/bpf/libbpf_common.h \
+ ../lib/libbpf/src/build/usr/include/bpf/libbpf_util.h \
+ ../include/./common/defines.h ../include/common/util.h ../cbr/cbr.h \
+ ../lib/libbpf/src/build/usr/include/bpf/bpf.h \
+ /usr/include/x86_64-linux-gnu/sys/ioctl.h \
+ /usr/include/x86_64-linux-gnu/bits/ioctls.h \
+ /usr/include/x86_64-linux-gnu/asm/ioctls.h \
+ /usr/include/asm-generic/ioctls.h /usr/include/linux/ioctl.h \
+ /usr/include/x86_64-linux-gnu/asm/ioctl.h \
+ /usr/include/asm-generic/ioctl.h \
+ /usr/include/x86_64-linux-gnu/bits/ioctl-types.h \
+ /usr/include/x86_64-linux-gnu/sys/ttydefaults.h \
+ /usr/include/x86_64-linux-gnu/sys/resource.h \
+ /usr/include/x86_64-linux-gnu/bits/resource.h \
+ /usr/include/x86_64-linux-gnu/bits/types/struct_rusage.h \
+ ../cbr/../include/common/util.h ../dbr/dbr.h \
+ ../dbr/../include/common/util.h
 
 /usr/include/stdc-predef.h:
 
@@ -167,6 +199,10 @@ vtl_server: vtl_server.c /usr/include/stdc-predef.h /usr/include/stdio.h \
 /usr/include/x86_64-linux-gnu/bits/stdio_lim.h:
 
 /usr/include/x86_64-linux-gnu/bits/sys_errlist.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdio.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:
 
 /usr/include/stdlib.h:
 
@@ -212,6 +248,8 @@ vtl_server: vtl_server.c /usr/include/stdc-predef.h /usr/include/stdio.h \
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_timespec.h:
 
+/usr/include/x86_64-linux-gnu/bits/select2.h:
+
 /usr/include/x86_64-linux-gnu/sys/sysmacros.h:
 
 /usr/include/x86_64-linux-gnu/bits/sysmacros.h:
@@ -224,7 +262,11 @@ vtl_server: vtl_server.c /usr/include/stdc-predef.h /usr/include/stdio.h \
 
 /usr/include/alloca.h:
 
+/usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h:
+
 /usr/include/x86_64-linux-gnu/bits/stdlib-float.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdlib.h:
 
 /usr/include/string.h:
 
@@ -234,11 +276,25 @@ vtl_server: vtl_server.c /usr/include/stdc-predef.h /usr/include/stdio.h \
 
 /usr/include/strings.h:
 
-../../service_api/service_api.h:
+/usr/include/x86_64-linux-gnu/bits/strings_fortified.h:
 
-../../service_api/../include/vtl.h:
+/usr/include/x86_64-linux-gnu/bits/string_fortified.h:
 
-/usr/include/linux/if_ether.h:
+/usr/include/unistd.h:
+
+/usr/include/x86_64-linux-gnu/bits/posix_opt.h:
+
+/usr/include/x86_64-linux-gnu/bits/environments.h:
+
+/usr/include/x86_64-linux-gnu/bits/confname.h:
+
+/usr/include/x86_64-linux-gnu/bits/getopt_posix.h:
+
+/usr/include/x86_64-linux-gnu/bits/getopt_core.h:
+
+/usr/include/x86_64-linux-gnu/bits/unistd.h:
+
+../include/headers/linux/if_link.h:
 
 /usr/include/linux/types.h:
 
@@ -262,6 +318,20 @@ vtl_server: vtl_server.c /usr/include/stdc-predef.h /usr/include/stdio.h \
 
 /usr/include/asm-generic/posix_types.h:
 
+/usr/include/linux/netlink.h:
+
+/usr/include/linux/kernel.h:
+
+/usr/include/linux/sysinfo.h:
+
+/usr/include/linux/socket.h:
+
+service_api.h:
+
+../include/vtl.h:
+
+/usr/include/linux/if_ether.h:
+
 /usr/include/net/if.h:
 
 /usr/include/x86_64-linux-gnu/sys/socket.h:
@@ -284,6 +354,8 @@ vtl_server: vtl_server.c /usr/include/stdc-predef.h /usr/include/stdio.h \
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_osockaddr.h:
 
+/usr/include/x86_64-linux-gnu/bits/socket2.h:
+
 /usr/include/netinet/ip.h:
 
 /usr/include/netinet/in.h:
@@ -298,11 +370,11 @@ vtl_server: vtl_server.c /usr/include/stdc-predef.h /usr/include/stdio.h \
 
 /usr/include/x86_64-linux-gnu/bits/wchar.h:
 
-../../service_api/../include/../../../nDPI/src/include/ndpi_api.h:
+../include/../../../nDPI/src/include/ndpi_api.h:
 
-../../service_api/../include/../../../nDPI/src/include/ndpi_main.h:
+../include/../../../nDPI/src/include/ndpi_main.h:
 
-../../service_api/../include/../../../nDPI/src/include/ndpi_includes.h:
+../include/../../../nDPI/src/include/ndpi_includes.h:
 
 /usr/include/ctype.h:
 
@@ -396,38 +468,74 @@ vtl_server: vtl_server.c /usr/include/stdc-predef.h /usr/include/stdio.h \
 
 /usr/include/byteswap.h:
 
-../../service_api/../include/../../../nDPI/src/include/ndpi_define.h:
+../include/../../../nDPI/src/include/ndpi_define.h:
 
-../../service_api/../include/../../../nDPI/src/include/ndpi_config.h:
+../include/../../../nDPI/src/include/ndpi_config.h:
 
-../../service_api/../include/../../../nDPI/src/include/ndpi_protocol_ids.h:
+../include/../../../nDPI/src/include/ndpi_protocol_ids.h:
 
-../../service_api/../include/../../../nDPI/src/include/ndpi_typedefs.h:
+../include/../../../nDPI/src/include/ndpi_typedefs.h:
 
-../../service_api/../include/../../../nDPI/src/include/ndpi_api.h:
+../include/../../../nDPI/src/include/ndpi_api.h:
 
-../../service_api/../include/../../../nDPI/src/include/ndpi_protocols.h:
+../include/../../../nDPI/src/include/ndpi_protocols.h:
 
-../../service_api/../include/../../../nDPI/src/include/ndpi_main.h:
+../include/../../../nDPI/src/include/ndpi_main.h:
 
-../../service_api/../include/./common/xdp_user_helpers.h:
+../include/./common/xdp_user_helpers.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/7/include/stdbool.h:
 
-../../service_api/../include/./common/xsk_user_helpers.h:
+../include/./common/xsk_user_helpers.h:
 
-../../lib/libbpf/src/build/usr/include/bpf/xsk.h:
+../lib/libbpf/src/build/usr/include/bpf/xsk.h:
 
-../../include/headers/linux/if_xdp.h:
+../include/headers/linux/if_xdp.h:
 
-../../lib/libbpf/src/build/usr/include/bpf/libbpf.h:
+../lib/libbpf/src/build/usr/include/bpf/libbpf.h:
 
-../../include/headers/linux/bpf.h:
+../include/headers/linux/bpf.h:
 
 /usr/include/linux/bpf_common.h:
 
-../../lib/libbpf/src/build/usr/include/bpf/libbpf_common.h:
+../lib/libbpf/src/build/usr/include/bpf/libbpf_common.h:
 
-../../lib/libbpf/src/build/usr/include/bpf/libbpf_util.h:
+../lib/libbpf/src/build/usr/include/bpf/libbpf_util.h:
 
-../../service_api/../include/./common/defines.h:
+../include/./common/defines.h:
+
+../include/common/util.h:
+
+../cbr/cbr.h:
+
+../lib/libbpf/src/build/usr/include/bpf/bpf.h:
+
+/usr/include/x86_64-linux-gnu/sys/ioctl.h:
+
+/usr/include/x86_64-linux-gnu/bits/ioctls.h:
+
+/usr/include/x86_64-linux-gnu/asm/ioctls.h:
+
+/usr/include/asm-generic/ioctls.h:
+
+/usr/include/linux/ioctl.h:
+
+/usr/include/x86_64-linux-gnu/asm/ioctl.h:
+
+/usr/include/asm-generic/ioctl.h:
+
+/usr/include/x86_64-linux-gnu/bits/ioctl-types.h:
+
+/usr/include/x86_64-linux-gnu/sys/ttydefaults.h:
+
+/usr/include/x86_64-linux-gnu/sys/resource.h:
+
+/usr/include/x86_64-linux-gnu/bits/resource.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/struct_rusage.h:
+
+../cbr/../include/common/util.h:
+
+../dbr/dbr.h:
+
+../dbr/../include/common/util.h:

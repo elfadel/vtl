@@ -131,7 +131,7 @@ void __hk_record_app_info(struct bpf_sock_ops *sk_ops, enum tcp_host_role h_role
 	app_info.dst_port = bpf_ntohl(sk_ops->remote_port);
 
 	app_hash = vtl_compute_tcp_stream_cookie(app_info.src_ip, app_info.dst_ip,
-													app_info.src_port, app_info.dst_port);
+							app_info.src_port, app_info.dst_port);
 	app_hash %= 20; /* size of hk_sock_map */
 
 	bpf_printk("[HK-SK]: CLIENT_PORT=%d | SERVER_PORT=%d\n", app_info.src_port, app_info.dst_port);

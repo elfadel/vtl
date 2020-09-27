@@ -62,8 +62,8 @@ vtl_client: vtl_client.c /usr/include/stdc-predef.h /usr/include/signal.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib-float.h /usr/include/string.h \
  /usr/include/x86_64-linux-gnu/bits/types/locale_t.h \
  /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h \
- /usr/include/strings.h ../../include/vtl.h /usr/include/linux/types.h \
- /usr/include/x86_64-linux-gnu/asm/types.h \
+ /usr/include/strings.h ../../include/vtl.h /usr/include/linux/if_ether.h \
+ /usr/include/linux/types.h /usr/include/x86_64-linux-gnu/asm/types.h \
  /usr/include/asm-generic/types.h /usr/include/asm-generic/int-ll64.h \
  /usr/include/x86_64-linux-gnu/asm/bitsperlong.h \
  /usr/include/asm-generic/bitsperlong.h /usr/include/linux/posix_types.h \
@@ -271,6 +271,8 @@ vtl_client: vtl_client.c /usr/include/stdc-predef.h /usr/include/signal.h \
 /usr/include/strings.h:
 
 ../../include/vtl.h:
+
+/usr/include/linux/if_ether.h:
 
 /usr/include/linux/types.h:
 
