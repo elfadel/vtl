@@ -46,8 +46,10 @@ int main(int argc, char **argv) {
 		exit(EXIT_FAILURE);
 	}
 	
-	tx_file = fopen("../../files/file2M.txt", "rb");
-	if(tx_file == NULL) {
+	/* ../../files/file2M.txt */
+	/* ../../../fat.txt */
+	tx_file = fopen("../../files/file128K.txt", "rb");
+	if(tx_file == NULL) { 
 		fprintf(stderr, "ERR: failed to open test file\n");
 		exit(EXIT_FAILURE);
 	}

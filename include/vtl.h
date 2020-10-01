@@ -57,8 +57,9 @@ typedef enum {
 // necessary support for negotiation only, not for internal TF algo.
 // ==> move this #defines to the code of the TFs.
 #define RECV_ACK 					0x0
-#define TIMEOUT 					0x1
-#define IDLE 						0x2
+#define RECV_NACK					0x1
+#define TIMEOUT 					0x2
+#define IDLE 						0x3
 
 /*************
  packet types

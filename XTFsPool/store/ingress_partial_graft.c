@@ -100,7 +100,7 @@ int xdp_sock_prog(struct xdp_md *ctx) {
   }
   uint16_t recv_csum = sum; //vtlh->checksum;
 
-  if(recv_csum == send_csum && *ack_num == vtlh->seq_num) { //Pkt not corrupted and in sequence
+  if(recv_csum == send_csum) { //Pkt not corrupted and in sequence
     if (bpf_map_lookup_elem(&xsks_map, &xsk_index)) {
 
       bpf_printk("KTF: Found %d, Wait %d\n", vtlh->seq_num, *ack_num);

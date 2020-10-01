@@ -5,7 +5,7 @@
 //TODO: remove defines.h
 #include "defines.h"
 
-#define NUM_FRAMES 					16384
+#define NUM_FRAMES 				0x20000
 #define FRAME_SIZE         			XSK_UMEM__DEFAULT_FRAME_SIZE
 #define RX_BATCH_SIZE 				64
 #define INVALID_UMEM_FRAME 			UINT64_MAX

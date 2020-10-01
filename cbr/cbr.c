@@ -25,8 +25,9 @@
 
 // Globals
 static const char *TC_GLOBAL_NS = "/sys/fs/bpf/tc/globals";
-static const char *BPF_ACK_MAP = "NUM_ACK_MAP";
+static const char *BPF_ACK_MAP = "ACK_WND_MAP";
 static const char *BPF_SEQ_MAP = "NUM_SEQ_MAP";
+static const char *BPF_WND_MAP = "LEN_WND_MAP";
 
 static long __get_map_fd(const char* map_filename) {
 
@@ -41,7 +42,7 @@ int cbr_create_raw_sock(int domain, int proto, char *err_buf) {
 	printf("[CBR]: cbr_create_raw_sock() called !\n");
 
 	int sock_fd;
-	long ret, ack_map_fd, seq_map_fd;
+	long ret, ack_map_fd, seq_map_fd, wnd_map_fd;
 
 	if((sock_fd = socket(domain, SOCK_RAW, proto)) < 0) {
 		snprintf(err_buf, VTL_ERRBUF_SIZE, 
@@ -51,19 +52,21 @@ int cbr_create_raw_sock(int domain, int proto, char *err_buf) {
 
 	ack_map_fd = __get_map_fd(BPF_ACK_MAP);
 	if(ack_map_fd < 0)
-		fprintf(stderr, "[CBR]: Warning - unable to get NUM_ACK_MAP\n");
+		fprintf(stderr, "[CBR]: Warning - unable to get ACK_WND_MAP\n");
 	else {
-		int index = 0;
-		struct sock_state_t sk_state = {};
-		sk_state.sk_fd = (__u32)sock_fd;
-		sk_state.event = IDLE;
 
-		ret = bpf_map_update_elem(ack_map_fd, &index, &sk_state, BPF_ANY);
+		for(int id = 0; id < 4; id++) {
+			struct sock_state_t sk_state = {};
+			sk_state.sk_fd = (__u32)sock_fd;
+			sk_state.event = TIMEOUT;
 
-		if(ret != 0)
-			fprintf(stderr, "[CBR]: Warning - unable to init NUM_ACK_MAP\n");
-		else
-			fprintf(stderr, "[CBR]: NUM_ACK_MAP init !\n");
+			ret = bpf_map_update_elem(ack_map_fd, &id, &sk_state, BPF_ANY);
+
+			if(ret != 0)
+				fprintf(stderr, "[CBR]: Warning - unable to init ACK_WND_MAP at id = %d\n", id);
+		}
+
+		fprintf(stderr, "[CBR]: ACK_WND_MAP init !\n");
 	}
 
 	seq_map_fd = __get_map_fd(BPF_SEQ_MAP);
@@ -79,6 +82,21 @@ int cbr_create_raw_sock(int domain, int proto, char *err_buf) {
 			fprintf(stderr, "[CBR]: Warning - unable to init NUM_SEQ_MAP\n");
 		else
 			fprintf(stderr, "[CBR]: NUM_SEQ_MAP init !\n");
+	}
+
+	wnd_map_fd = __get_map_fd(BPF_WND_MAP);
+	if(wnd_map_fd < 0)
+		fprintf(stderr, "[CBR]: Warning - unable to get LEN_WND_MAP\n");
+	else {
+		int index = 0;
+		uint16_t init_len = 1;
+
+		ret = bpf_map_update_elem(wnd_map_fd, &index, &init_len, BPF_ANY);
+
+		if(ret != 0)
+			fprintf(stderr, "[CBR]: Warning - unable to init LEN_WND_MAP\n");
+		else
+			fprintf(stderr, "[CBR]: LEN_WND_MAP init !\n");
 	}
 
 	return sock_fd;

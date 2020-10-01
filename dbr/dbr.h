@@ -19,6 +19,12 @@
 #include "../include/common/util.h"
 #include "../include/common/xsk_user_helpers.h"
 
+#define WIN_SIZE 		16
+struct sr_buff_t {
+	uint8_t *buff;
+	int len;
+};
+
 /* TODO: reduce the number of arguments */
 int dbr_send(int sock_fd, uint8_t *send_pkt, 
 		vtl_hdr_t *vtlh, struct ip *iphdr, 

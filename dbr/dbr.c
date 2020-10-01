@@ -178,6 +178,10 @@ static bool __process_packet(struct xsk_socket_info *xsk, uint64_t addr, uint32_
 	uint8_t *data;
 	uint8_t *pkt = xsk_umem__get_data(xsk->umem->buffer, addr);
 
+	static struct sr_buff_t sr_buff[WIN_SIZE];
+	static bool stored[WIN_SIZE] = {false};
+	static int next_num = 0;
+
 	struct ethhdr *eth = (struct ethhdr *) pkt;
 	struct iphdr *iph = (struct iphdr *)(eth + 1);
 	if(vtlh != NULL) {
@@ -193,11 +197,44 @@ static bool __process_packet(struct xsk_socket_info *xsk, uint64_t addr, uint32_
 		hdr_size = sizeof(struct ethhdr) + sizeof(struct iphdr) + sizeof(vtl_hdr_t);
 		data_size = len - hdr_size;
 
-		memcpy(rx_data + *rx_data_len, data, data_size);
-		*rx_data_len += (size_t) data_size;
-	
-		*cnt_pkts += 1;
-		*cnt_bytes += data_size;
+		if(vtlh != NULL && vtlh->seq_num == next_num) {
+			memcpy(rx_data + *rx_data_len, data, data_size);
+			*rx_data_len += (size_t) data_size;
+		
+			*cnt_pkts += 1;
+			*cnt_bytes += data_size;
+
+			next_num++;
+			next_num %= WIN_SIZE;
+			int j = next_num;
+			// TODO: add condition (from MAP)
+			while(stored[j] == true) {
+				printf("[DBR]: purging buffer at id %d\n", j);
+				memcpy(rx_data + *rx_data_len, sr_buff[j].buff, sr_buff[j].len);
+				*rx_data_len += (size_t) sr_buff[j].len;
+				free(sr_buff[j].buff);
+				sr_buff[j].len = 0;
+				//memset(sr_buff.buff + off, 0, data_size);
+				stored[j] = false;
+				j++;
+				j %= WIN_SIZE;
+				*cnt_pkts += 1;
+				*cnt_bytes += data_size;
+			}
+			next_num = j;
+		}
+		else {
+			int z = (int) vtlh->seq_num;
+			sr_buff[z].buff = (uint8_t *) calloc(1, data_size);
+			if(sr_buff[z].buff == NULL) {
+				printf("[DBR]: calloc(%d) failed.\n", z);
+				return false;
+			}
+			sr_buff[z].len = data_size;
+			memcpy(sr_buff[z].buff, data, sr_buff[z].len);
+			printf("[DBR]: pkt %d stored of size = %d\n", z, sr_buff[z].len);
+			stored[z] = true;
+		}
 	}
 	return true;
 }
