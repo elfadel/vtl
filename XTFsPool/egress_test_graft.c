@@ -1,4 +1,4 @@
-//EGRESS SR ARQ GRAFT
+//EGRESS GOBACKN ARQ GRAFT
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -51,14 +51,6 @@ struct bpf_elf_map SEC("maps") LEN_WND_MAP = {
         .max_elem       = WND_SIZE, 
 };
 
-struct bpf_elf_map SEC("maps") ACK_PKT_MAP = { // Number of acked packets
-        .type        = BPF_MAP_TYPE_ARRAY,
-        .size_key    = sizeof(unsigned int),
-        .size_value  = sizeof(uint16_t),
-        .pinning     = PIN_GLOBAL_NS,
-        .max_elem    = 1,
-};
-
 SEC("egress_tf_sec")
 int _tf_tc_egress(struct __sk_buff *skb) {
 
@@ -108,7 +100,7 @@ int _tf_tc_egress(struct __sk_buff *skb) {
         sk_state = (struct sock_state_t *) bpf_map_lookup_elem(&ACK_WND_MAP, &id_ack_buf);
         if(!sk_state)
                 return TC_ACT_OK;
-        sk_state->event = TIMEOUT;
+        sk_state->event = IDLE;
         bpf_map_update_elem(&ACK_WND_MAP, &id_ack_buf, sk_state, BPF_ANY);
 
         uint32_t cur_pload_len = (uint32_t) vtlh->payload_len;
@@ -147,19 +139,14 @@ int _tf_tc_egress(struct __sk_buff *skb) {
 
         int tx_num = 0;
         if(id_ack_buf == WND_SIZE - 1 || save_len < ON_WIRE_SIZE) {
-
-                unsigned int cursor = 0, i = 0, out = 0;
-                uint16_t *acked_pkts = NULL;
-                uint16_t init = 0;
-                int id = 0;
-                bpf_map_update_elem(&ACK_PKT_MAP, &id, &init, BPF_ANY);
+                unsigned int cursor = 0, i = 0, j = 0, lost = 0;
                 do {
-                        bpf_vtl_start_timer(10); // ms
+                        bpf_vtl_start_timer(2); // ms
                         
                         tx_num++;
-                        if(tx_num > RETX_MAX || out)
+                        if(tx_num > RETX_MAX)
                                 break;
-                        
+
                         for(i = cursor; i < WND_SIZE; i++) { // ACKs checking loop
 
                                 if(i > cur_win_size)
@@ -169,17 +156,31 @@ int _tf_tc_egress(struct __sk_buff *skb) {
                                 
                                 sk_state = (struct sock_state_t *) bpf_map_lookup_elem(&ACK_WND_MAP, &id_ack_buf);
                                 if(!sk_state)
-                                        return TC_ACT_OK;
+                                        break;
 
-                                if(sk_state->event == TIMEOUT) { // Selective Retx
-                                        
+                                if(sk_state->event != RECV_ACK) {
+                                        lost = 1;
+                                        break;
+                                }
+                        }
+
+                        if(lost) {
+                                
+                                cursor = i;
+                                for(j = cursor; j < WND_SIZE; j++) { // Retx loop
+
+                                        if(j > cur_win_size)
+                                                break;
+
+                                        id_ack_buf = j;
+
                                         vtl_pkt_t *get_skb = (vtl_pkt_t *) bpf_map_lookup_elem(&BUF_WND_MAP, &id_ack_buf);
                                         if(!get_skb)
-                                                return TC_ACT_OK;
+                                                break;
 
                                         uint16_t* get_len = (uint16_t *) bpf_map_lookup_elem(&LEN_WND_MAP, &id_ack_buf);
                                         if(!get_len)
-                                                return TC_ACT_OK;
+                                                break;
 
                                         if(*get_len == ON_WIRE_SIZE)
                                                 bpf_skb_change_tail(skb, ON_WIRE_SIZE, 0);
@@ -191,22 +192,11 @@ int _tf_tc_egress(struct __sk_buff *skb) {
 
                                         bpf_clone_redirect(skb, skb->ifindex+1, 0);
                                 }
-                                else if(sk_state->event == RECV_ACK) {
-
-                                        int idd = 0;
-                                        acked_pkts = (uint16_t *) bpf_map_lookup_elem(&ACK_PKT_MAP, &idd);
-                                        if(!acked_pkts)
-                                               return TC_ACT_OK;
-                                        
-                                        (*acked_pkts)++;
-                                        bpf_map_update_elem(&ACK_PKT_MAP, &idd, acked_pkts, BPF_ANY);
-                
-                                        sk_state->event = IDLE;
-                                        bpf_map_update_elem(&ACK_WND_MAP, &id_ack_buf, sk_state, BPF_ANY);
-                                        
-                                        if(*acked_pkts == cur_win_size + 1)
-                                                out = 1;
-                                }
+                                lost = 0;
+                        }
+                        else {//All pkts are ACKs
+                                lost = 0;
+                                break;
                         }
                 } while(true);
         }
@@ -243,12 +233,14 @@ int _listener_tf(struct xdp_md *ctx) {
                 return XDP_PASS;
 
         if(vtlh->pkt_type == NACK)
-                sk_state->event = RECV_NACK;
+                sk_state->event = IDLE;
         else
                 sk_state->event = RECV_ACK;
 
-        bpf_map_update_elem(&ACK_WND_MAP, &index, sk_state, BPF_ANY);
-        
+        long ret = bpf_map_update_elem(&ACK_WND_MAP, &index, sk_state, BPF_ANY);
+        if(ret != 0)
+                return XDP_PASS;
+
         return XDP_PASS;
 }
 

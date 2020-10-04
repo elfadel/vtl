@@ -1,9 +1,9 @@
 /**
  * @file :		legacy_server.c
- * @author :	El-Fadel Bonfoh
- * @contribs :	-
+ * @author :		El-Fadel Bonfoh
+ * @contribs :	
  * @date :		05/2019 -
- * @version :	0.1
+ * @version :		0.1
  * @brief :
 */
 
@@ -19,7 +19,7 @@
 #define MAX 					1024 /* Adapt to the MTU of net link */
 #define PORT 					2222 		
 #define SA 						struct sockaddr
-#define FILE_NAME 				"../files/file16K.txt"
+#define FILE_NAME 				"../../fat.txt"
 
 void apps(int sockfd) {
 	char buff[MAX];
@@ -39,7 +39,7 @@ void apps(int sockfd) {
 
 			n = fread(buff, 1/* nombre d'octets par données lues*/, MAX /*le nombre de données à lire*/, tx_file);
 
-			// Envoyer au *putain* de client
+			// Envoyer au *putain* de client :)
 			send(sockfd, buff, n, 0);
 		    usleep(500); //0.5ms
 		}

@@ -33,7 +33,7 @@ void apps(int sockfd) {
 	for(int i = 0; i < 1; i++) { // useless loop !
 
 		bzero(buff, sizeof(buff));
-		printf("[LEG CLIENT]: uploading data ...\n");
+		printf("[LEG CLIENT]: downloading data ...\n");
 
 		n = read(sockfd, buff, sizeof(buff));
 		while (n > 0) {

@@ -43,7 +43,7 @@ static int __populate_prog_array(const char *sec_name, int prog_fd) {
 	err = bpf_map_update_elem(prog_array_fd, &ind, &prog_fd, BPF_ANY);
 	if(err < 0) {
 		printf("[LAUNCHER]: WARN -- __populate_prog_array() -- failed to store prog_fd in prog_array\n");
-		return -1;
+		//return -1;
 	}
 
 	printf("[LAUNCHER]: Hooker activated !\n");
