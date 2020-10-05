@@ -35,20 +35,14 @@ Follow the instructions and make choices.
 	protocol (list below) or let this task to VTL by specified 253 (default) as the argument value.
 
 List of substitution protocol supported by VTL and their corresponding IP number:
-	 Protocol |    IP number [[IANA](https://bit.ly/3nehetj)]   
-	 ---------| ---------------------------------------------
-	   UDP    |             17            
-	 UDPLite  |             136           
-	   DCCP   |             33            
-	   SCTP   |             132           
-	   QUIC   | 142 (conventional in VTL) 
-	   VTL    | 253 (conventional in VTL) 
-
-	| Binding | License |
-	|:-----:|:-----:|
-	| minicrypto | [CC0](https://github.com/ctz/cifra/) / [2-clause BSD](https://github.com/kmackay/micro-ecc) |
-	| OpenSSL | OpenSSL |
-
+Protocol |    IP number [[IANA](https://bit.ly/3nehetj)]   
+---------| ---------------------------------------------
+UDP    |             17            
+UDPLite  |             136           
+DCCP   |             33            
+SCTP   |             132           
+QUIC   | 142 (conventional in VTL) 
+VTL    | 253 (conventional in VTL) 
 
 | Binding | License |
 |:-----:|:-----:|
