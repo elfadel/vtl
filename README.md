@@ -28,7 +28,8 @@ Follow the instructions and make choices.
 
 \> Second: start user daemon
 ```
-$ cd hooker 
+$ cd hooker
+$ make 
 $ sudo ./hk-daemon <IPPROTO> <HOST_MODE>
 ```
 
