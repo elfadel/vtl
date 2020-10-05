@@ -35,14 +35,21 @@ Follow the instructions and make choices.
 	protocol (list below) or let this task to VTL by specified 253 (default) as the argument value.
 
 List of substitution protocol supported by VTL and their corresponding IP number:
-	 Protocol |    IP number [![IANA](https://bit.ly/3nehetj)]   
-	 -------- | --------------------------
+	 Protocol |    IP number [[IANA](https://bit.ly/3nehetj)]   
+	 ---------| ---------------------------------------------
 	   UDP    |             17            
 	 UDPLite  |             136           
 	   DCCP   |             33            
 	   SCTP   |             132           
 	   QUIC   | 142 (conventional in VTL) 
 	   VTL    | 253 (conventional in VTL) 
+
+
+| Binding | License | Key Exchange | Certificate | AEAD cipher |
+|:-----:|:-----:|:-----:|:-----:|:-----:|
+| minicrypto | [CC0](https://github.com/ctz/cifra/) / [2-clause BSD](https://github.com/kmackay/micro-ecc) | secp256r1, x25519 | ECDSA (P256)<sup>1</sup> | AES-128-GCM, chacha20-poly1305 |
+| OpenSSL | OpenSSL | secp256r1, secp384r1, secp521r1, x25519 | RSA, ECDSA (P256) | AES-128-GCM, AES-256-GCM, chacha20-poly1305 |
+
 
 *HOST_MODE:* a string to indicate if the hooker daemon will hook either a TCP client or a TCP server.
 
