@@ -9,9 +9,10 @@ LIBBPF_DIR = $(ROOT_DIR)/lib/libbpf/src
 MODULES := $(SRC_DIR)/service_api
 MODULES += $(SRC_DIR)/cbr
 MODULES += $(SRC_DIR)/dbr
-MODULES += $(SRC_DIR)/include/common
+MODULES += $(SRC_DIR)/net_monitor
 MODULES += $(SRC_DIR)/launcher
 MODULES += $(SRC_DIR)/ui
+MODULES += $(SRC_DIR)/include/common
 
 BIN_CLEAN = $(addsuffix _clean, $(BIN_DIR))
 MODULES_CLEAN = $(addsuffix _clean, $(MODULES))
@@ -23,8 +24,9 @@ STATIC_LIBVTL = $(BIN_DIR)/libvtl.a
 LIBVTL_OBJS := $(SRC_DIR)/service_api/*.o
 LIBVTL_OBJS += $(SRC_DIR)/cbr/*.o
 LIBVTL_OBJS += $(SRC_DIR)/dbr/*.o
-LIBVTL_OBJS += $(SRC_DIR)/include/common/*.o
+LIBVTL_OBJS += $(SRC_DIR)/net_monitor/*.o
 LIBVTL_OBJS += $(SRC_DIR)/launcher/*.o
+LIBVTL_OBJS += $(SRC_DIR)/include/common/*.o
 
 VTL_UI = $(BIN_DIR)/vtl_ui
 
@@ -44,6 +46,7 @@ LDFLAGS ?= -L$(LIBBPF_DIR)
 LIBS := -l:libbpf.a -lelf
 LIBS += -lpcap
 LIBS += -lz
+LIBS += -lm
 
 all: build
 	@echo "Build finished."
