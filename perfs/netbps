@@ -1,0 +1,35 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Time::HiRes;
+
+my $reporting_interval = 0.25; # seconds
+my $bytes_this_interval = 0;
+my $bits_this_interval = 0;
+my $avg_throughput = 0;
+my $total_report = 0;
+my $start_time = [Time::HiRes::gettimeofday()];
+
+STDOUT->autoflush(1);
+
+while (<>) {
+  if (/ length (\d+):/) {
+    $bytes_this_interval += $1;
+    my $elapsed_seconds = Time::HiRes::tv_interval($start_time);
+    if ($elapsed_seconds > $reporting_interval) {
+      $total_report++;
+      $bits_this_interval = 8*$bytes_this_interval; 
+      my $bps = $bytes_this_interval / $elapsed_seconds;
+      my $mbps = ($bits_this_interval / $elapsed_seconds)/1000000;
+      #printf "%02d:%02d:%02d %10.2f Bps   <==>   ", (localtime())[2,1,0],$bps;
+      printf "%.2f \n", $mbps;
+      $start_time = [Time::HiRes::gettimeofday()];
+      $avg_throughput += $mbps;
+      $bytes_this_interval = 0;
+    }
+  }
+  # sudo tcpdump -i enp0s3 port 2223 -l -e -n | ./netbps
+  #printf "--------------------------------------------\n";
+  #printf "reports measure: %.2f; avg throughput: %.2f", $total_report, $avg_throughput; 
+}
