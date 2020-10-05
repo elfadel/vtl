@@ -36,19 +36,13 @@ Follow the instructions and make choices.
 
 List of substitution protocol supported by VTL and their corresponding IP number:
 Protocol |    IP number [[IANA](https://bit.ly/3nehetj)]   
----------| :---------------------------------------------:
+:---------: | :---------------------------------------------:
 UDP    |             17            
 UDPLite  |             136           
 DCCP   |             33            
 SCTP   |             132           
 QUIC   | 142 (conventional in VTL) 
 VTL    | 253 (conventional in VTL) 
-
-| Binding | License |
-|-----|:-----:|
-| minicrypto | [CC0](https://github.com/ctz/cifra/) / [2-clause BSD](https://github.com/kmackay/micro-ecc) |
-| OpenSSL | OpenSSL |
-
 
 *HOST_MODE:* a string to indicate if the hooker daemon will hook either a TCP client or a TCP server.
 
