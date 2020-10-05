@@ -20,14 +20,16 @@ or a set of TCP applications, and _**sk_msg**_, to redirect the monitored applic
 
 \> First: build and launch (deploy) kernel prog part:
 ```
-% cd bin
-% sudo ./vtl_ui
+$ make
+$ cd bin
+$ sudo ./vtl_ui
 Follow the instructions and make choices.
 ```
 
 \> Second: start user daemon
 ```
-% sudo ./hk-daemon <IPPROTO> <HOST_MODE>
+$ cd hooker 
+$ sudo ./hk-daemon <IPPROTO> <HOST_MODE>
 ```
 
 *IPPROTO:* this argument is an integer and is used to indicate which protocol should be used to replace TCP. 
