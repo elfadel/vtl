@@ -9,7 +9,7 @@ on the correctness rather than performance. I will keep correctness, but I will
 improve performance, especially in light of practical experience with
 applications. Suggestions are welcome.
 
-	![](files/vtl.png)
+![](files/vtl.png)
 
 Test and run  Hooker:
 ---
