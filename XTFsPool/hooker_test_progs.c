@@ -248,7 +248,7 @@ int hooker_monitor_apps(struct bpf_sock_ops *sk_ops) {
 				__builtin_memcpy(&opt_buff, &real_v_opt, sizeof(int));
 				option_type = real_v_opt.data;
 			}
-			else if(sk_ops->args[1] == 200) { // Add NEGO_OPT option
+			else if(sk_ops->args[1] == 200) { // Add VTL_NEGO_OPT option
 				struct tcp_opt real_v_opt = {
 					.kind 	= 253,
 					.len 	= sizeof(v_opt),
@@ -291,7 +291,7 @@ int hooker_monitor_apps(struct bpf_sock_ops *sk_ops) {
 					bpf_printk("[HK-SK]: unable to get syn_info from MAP.\n");
 				
 			} 
-			else if (sk_ops->args[1] == 300) { // Add NEGO_ACK_OPT option
+			else if (sk_ops->args[1] == 300) { // Add VTL_NEGO_ACK_OPT option
 				struct tcp_opt real_v_opt = {
 					.kind 	= 253,
 					.len 	= sizeof(v_opt),
@@ -395,13 +395,13 @@ int hooker_get_vtl_opt(struct xdp_md *ctx) {
 		h_role = (enum tcp_host_role *)
 			 bpf_map_lookup_elem(&TCP_HOST_ROLE_MAP, &index0);
 		if(h_role == NULL)
-			bpf_printk("[HK-X]: unable to get TCP host role from MAP (1).\n");
+			bpf_printk("[HK-X]: unable to get TCP host role from MAP (0).\n");
 		else if(*h_role == TCP_SERVER) {
 
 			profiling_tries = (int *)
 					  bpf_map_lookup_elem(&PRFLNG_TRIES_NUM_MAP, &index1);
 			if(profiling_tries == NULL)
-				bpf_printk("[HK-X]: unable to get TCP host role from MAP (0).\n");
+				bpf_printk("[HK-X]: unable to get TCP host role from MAP (1).\n");
 			else if(*profiling_tries < MAX_PROFILING_TRIES) { 
 				// We should continue to trie profiling of tcp stream
 				
@@ -431,13 +431,6 @@ int hooker_get_vtl_opt(struct xdp_md *ctx) {
 		}
 
 		if(tcph->syn && !tcph->ack) { // SYN packet. Play with it !
-			
-			int length = (tcph->doff * 4) - sizeof(struct tcphdr);
-			const unsigned char *ptr = (const unsigned char *)(tcph + 1);
-			if(ptr + 1 > data_end) {
-				bpf_printk("[HK-X]: Error parsing TCP options (0).\n");
-				return XDP_PASS;
-			}
 
 			index = 0;
 			struct stream_tuple syn_info;
@@ -447,6 +440,13 @@ int hooker_get_vtl_opt(struct xdp_md *ctx) {
 			syn_info.src_port = local_port;
 			syn_info.dst_port = remote_port;
 			bpf_map_update_elem(&SYN_HDR_INFO_MAP, &index, &syn_info, BPF_ANY);
+
+			int length = (tcph->doff * 4) - sizeof(struct tcphdr);
+			const unsigned char *ptr = (const unsigned char *)(tcph + 1);
+			if(ptr + 1 > data_end) {
+				bpf_printk("[HK-X]: Error parsing TCP options (0).\n");
+				return XDP_PASS;
+			}
 
 			int i = 0;
 			//TODO: Fix bound 7
@@ -490,7 +490,58 @@ int hooker_get_vtl_opt(struct xdp_md *ctx) {
 
 				length -= opsize;
 			}
-		} // End SYN handle
+		} // End SYN handle 
+		else if(tcph->syn && tcph->ack) {
+			// Retrieve NEGO_OPT option and deduce the required proto X
+			int length = (tcph->doff * 4) - sizeof(struct tcphdr);
+			const unsigned char *ptr = (const unsigned char *)(tcph + 1);
+			if(ptr + 1 > data_end) {
+				bpf_printk("[HK-X]: Error parsing TCP options (4).\n");
+				return XDP_PASS;
+			}
+
+			int i = 0;
+			for(i = 0; i < 7; i++) {
+				int opcode = *ptr;
+
+				if(length <= 0)
+					break;
+			
+				if(opcode == 253 || opcode == 254) {
+					struct tcp_opt *t_opt = (struct tcp_opt *)ptr;
+					if(t_opt + 1 > data_end) {
+						bpf_printk("[HK-X]: Error getting VTL Opt (1).\n");
+						return XDP_PASS;
+					}
+					
+					break;
+				}
+				else if(opcode == TCPOPT_NOP) {
+					length--;
+					ptr++;
+					if(ptr + 1 > data_end) {
+						bpf_printk("[HK-X]: Error parsing TCP options (5).\n");
+						return XDP_PASS;
+					}
+					continue;
+				}
+
+				ptr++;
+				if(ptr + 1 > data_end) {
+					bpf_printk("[HK-X]: Error parsing TCP options (6).\n");
+					return XDP_PASS;
+				}
+				int opsize = *ptr;
+
+				ptr += opsize - 1;
+				if(ptr + 1 > data_end) {
+					bpf_printk("[HK-X]: Error parsing TCP options (7).\n");
+					return XDP_PASS;
+				}
+
+				length -= opsize;
+			}
+		}
 	} // End TCP handle
 
 	return XDP_PASS;

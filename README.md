@@ -11,6 +11,10 @@ applications. Suggestions are welcome.
 
 ![](files/vtl.png)
 
+Install dependencies
+---
+TBA.
+
 Test and run  Hooker:
 ---
 \> Hooker contains two programs:

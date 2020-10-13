@@ -142,11 +142,11 @@ struct sock_state_t { // TODO: change the name
 typedef enum {
 	// TODO: Add OPT at the end of all vars
 	VTL_COMPLIANT_OPT,
-	NEGO_OPT,
-	NEGO_ACK_OPT,
-	NEGO_NACK_OPT,
-	CLOSE_OPT,
-	CLOSE_ACK_OPT,
+	VTL_NEGO_OPT,
+	VTL_NEGO_ACK_OPT,
+	VTL_NEGO_NACK_OPT,
+	VTL_CLOSE_OPT,
+	VTL_CLOSE_ACK_OPT,
 	VTL_PURE_DATA_OPT,
 } vtl_tcp_options;
 
