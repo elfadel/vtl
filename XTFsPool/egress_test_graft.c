@@ -141,7 +141,7 @@ int _tf_tc_egress(struct __sk_buff *skb) {
         if(id_ack_buf == WND_SIZE - 1 || save_len < ON_WIRE_SIZE) {
                 unsigned int cursor = 0, i = 0, j = 0, lost = 0;
                 do {
-                        bpf_vtl_start_timer(2); // ms
+                        bpf_vtl_start_timer(325); // ms
                         
                         tx_num++;
                         if(tx_num > RETX_MAX)

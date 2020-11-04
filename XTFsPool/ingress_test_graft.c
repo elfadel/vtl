@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0 */
 
-//INGRESS SR ARQ GRAFT
+//INGRESS GOBACKN ARQ GRAFT
 
 #include <stdint.h>
 #include <netinet/ip.h>
@@ -18,6 +18,13 @@ struct bpf_map_def SEC("maps") xsks_map = {
         .key_size       = sizeof(int),
         .value_size     = sizeof(int),
         .max_entries    = 64,
+};
+
+struct bpf_map_def SEC("maps") NUM_ACK_MAP = {
+        .type           = BPF_MAP_TYPE_ARRAY,
+        .key_size       = sizeof(unsigned int),
+        .value_size     = sizeof(uint16_t),
+        .max_entries    = 1,
 };
 
 static __always_inline void swap_src_dst_mac(void *data) {
@@ -39,8 +46,9 @@ static __always_inline void swap_src_dst_mac(void *data) {
 SEC("ingress_tf_sec")
 int xdp_sock_prog(struct xdp_md *ctx) {
 
-        int xsk_index = ctx->rx_queue_index;
-        
+        int index = 0, xsk_index = ctx->rx_queue_index;
+        uint16_t *ack_num = NULL;
+
         void *data = (void *)(long)ctx->data;
         void *data_end = (void *)(long)ctx->data_end;
 
@@ -60,16 +68,28 @@ int xdp_sock_prog(struct xdp_md *ctx) {
         if(vtlh + 1 > data_end)
                 return XDP_DROP;
 
+        ack_num = (uint16_t *) bpf_map_lookup_elem(&NUM_ACK_MAP, &index);
+        if(!ack_num)
+                return XDP_PASS;
+
         uint16_t recv_csum = vtlh->checksum;
 
         uint16_t compute_csum = 0;
         if(vtl_csum(data, data_end, &compute_csum) == -1)
                 return XDP_PASS;
-        
-        if(recv_csum == compute_csum && 
-                bpf_map_lookup_elem(&xsks_map, &xsk_index))
 
-                return bpf_redirect_map(&xsks_map, xsk_index, 0);
+        if(recv_csum == compute_csum && 
+                *ack_num == vtlh->seq_num) {
+
+                if (bpf_map_lookup_elem(&xsks_map, &xsk_index)) {
+
+                        (*ack_num)++;
+                        *ack_num %= WND_SIZE;
+                        bpf_map_update_elem(&NUM_ACK_MAP, &index, ack_num, BPF_ANY);
+
+                        return bpf_redirect_map(&xsks_map, xsk_index, 0);
+                }
+        }
         else {
                 swap_src_dst_mac(eth);
                 __be32 temp_ip = iph->saddr;

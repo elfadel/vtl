@@ -76,6 +76,8 @@ xsk_configure_socket(char *ifname, __u32 xdp_flags, __u16 xsk_bind_flags,
 	int i;
 	int ret;
 
+	int ifindex = if_nametoindex(ifname);
+
 	xsk_info = calloc(1, sizeof(*xsk_info));
 	if (!xsk_info)
 		return NULL;
@@ -92,8 +94,6 @@ xsk_configure_socket(char *ifname, __u32 xdp_flags, __u16 xsk_bind_flags,
 
 	if (ret)
 		goto error_exit;
-
-	int ifindex = if_nametoindex(ifname);
 	
 	// Vérifier si un programme xdp est attaché
 	ret = bpf_get_link_xdp_id(ifindex, &prog_id, xdp_flags);

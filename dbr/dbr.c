@@ -233,7 +233,7 @@ static bool __process_packet(struct xsk_socket_info *xsk, uint64_t addr, uint32_
 			sr_buff[z].len = data_size;
 			memcpy(sr_buff[z].buff, data, sr_buff[z].len);
 			printf("[DBR]: pkt %d stored of size = %d\n", z, sr_buff[z].len);
-			stored[z] = true;
+			stored[z] = true; 
 		}
 	}
 	return true;

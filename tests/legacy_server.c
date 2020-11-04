@@ -19,7 +19,7 @@
 #define MAX 					1024 /* Adapt to the MTU of net link */
 #define PORT 					2222 		
 #define SA 						struct sockaddr
-#define FILE_NAME 				"../../fat.txt"
+#define FILE_NAME 				"../files/video32M.mp4"
 
 void apps(int sockfd) {
 	char buff[MAX];

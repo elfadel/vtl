@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
 	
 	/* ../../files/file2M.txt */
 	/* ../../../fat.txt */
-	tx_file = fopen("../../../fat.txt", "rb");
+	tx_file = fopen("../../files/video32M.mp4", "rb");
 	if(tx_file == NULL) { 
 		fprintf(stderr, "ERR: failed to open test file\n");
 		exit(EXIT_FAILURE);

@@ -119,7 +119,7 @@ int xdp_sock_prog(struct xdp_md *ctx) {
     iph->daddr = temp_ip;
 
     //TODO: resize pkt before XDP_TX
-    vtlh->type = NACK;
+    vtlh->pkt_type = NACK;
 
     return XDP_TX;
   }

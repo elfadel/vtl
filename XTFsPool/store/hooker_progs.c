@@ -21,7 +21,7 @@
 
 struct tcp_opt v_opt = {
 
-	.kind 	= 253, // Experimental value (iana.org RF2780)
+	.kind 	= 253, // Experimental value (iana.org RFC2780)
 	.len 	= sizeof(v_opt),
 	.data 	= bpf_htons(0x0001),
 };

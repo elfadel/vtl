@@ -1,9 +1,9 @@
 /**
 * @file :		legacy_client.c
 * @author :		El-Fadel Bonfoh
-* @contribs :	-
+* @contribs :		-
 * @date :		05/2019 -
-* @version :	0.1
+* @version :		0.1
 * @brief :
 */
 
