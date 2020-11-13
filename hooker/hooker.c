@@ -250,6 +250,10 @@ int hk_listen_app(void) {
     	char buffer[MAXDATASIZE];
     	int ret;
     	while(1) {
+                long delta_s = 0, delta_u = 0;
+                struct timeval start, end;
+
+                gettimeofday(&start, NULL);
         
         	memset(buffer, 0, sizeof(buffer));
         	/* Local appli --> Hooker */
@@ -287,6 +291,13 @@ int hk_listen_app(void) {
                 		return errno;
             		}
         	}
+
+                gettimeofday(&end, NULL);
+                delta_s = (end.tv_sec - start.tv_sec);
+                delta_u = ((delta_s * 1000000) + end.tv_usec) - (start.tv_usec);
+
+                printf("[HK-USER]: redirect in %ld s and %ld us \n", 
+                        delta_s, delta_u);
     	}
            
     	return 0;
@@ -294,12 +305,14 @@ int hk_listen_app(void) {
 
 int hk_sendto_app(void) {
 	
-    	printf("hk_sendto_app() !\n");
-
     	char buffer[MAXDATASIZE*1024];
     	int ret; 
     	int tosize = sizeof(to);
 	while(1) {
+                long delta_s = 0, delta_u = 0;
+                struct timeval start, end;
+
+                gettimeofday(&start, NULL);
 
         	memset(buffer, 0, sizeof(buffer));
         
@@ -335,7 +348,12 @@ int hk_sendto_app(void) {
             		return errno;
         	}
 
-        	printf("[HK-USER]: local redirected %ld bytes.\n", strlen(buffer));
+                gettimeofday(&end, NULL);
+                delta_s = (end.tv_sec - start.tv_sec);
+                delta_u = ((delta_s * 1000000) + end.tv_usec) - (start.tv_usec);
+
+                printf("[HK-USER]: redirect in %ld s and %ld us \n", 
+                        delta_s, delta_u);
     	}
 
     	return 0;

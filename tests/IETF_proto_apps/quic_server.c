@@ -17,7 +17,7 @@ int main()
     int buff_len;
     char buff[MAX_PKT_SIZE];
 
-    FILE *out_file = fopen("../../../fat.txt", "r");
+    FILE *out_file = fopen("../../files/file1M.txt", "r");
     if(out_file == NULL) {
         printf("fopen() failed. errno=%d\n", errno);
         exit(1);

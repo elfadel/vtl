@@ -329,11 +329,14 @@ int hooker_monitor_apps(struct bpf_sock_ops *sk_ops) {
 SEC("hooker_redirector/0")
 int hooker_switch_packet_data(struct sk_msg_md *msg) {
 
-	__u64 flags = BPF_F_INGRESS;
+	__u64 flags = BPF_F_INGRESS, delta, start_time;
 	int default_app_hash = 0;
 
 	if(msg->local_port == HK_REDIR_PORT) {
 		// Hooker -> app
+		start_time = bpf_ktime_get_ns();
+		int ret = 0;
+
 		int index = 0, app_hash_cpy;
 		int *get_app_hash = NULL;
 		get_app_hash = bpf_map_lookup_elem(&APP_HASH_ID_MAP, &index);
@@ -344,18 +347,27 @@ int hooker_switch_packet_data(struct sk_msg_md *msg) {
 		}
 
 		app_hash_cpy = *get_app_hash;
-		bpf_printk("[HK-SM]: hk_kern redirects to appli: %d bytes.\n", 
-			   msg->size);
-		return bpf_msg_redirect_hash(msg, &HK_SOCK_MAP, &app_hash_cpy, flags);
+		ret = bpf_msg_redirect_hash(msg, &HK_SOCK_MAP, &app_hash_cpy, flags);
+		delta = bpf_ktime_get_ns() - start_time;
+		bpf_printk("[HK-SM]: hk_kern redirects to appli: %ld ns\n", 
+			   delta);
+		
+		return ret;
 	}
 	else {
 		// app -> Hooker
-		bpf_printk("[HK-SM]: hk_kern redirects to hk_user: %d bytes.\n",
-			   msg->size);
-		return bpf_msg_redirect_hash(msg, &HK_SOCK_MAP, &default_app_hash, flags);
+		start_time = bpf_ktime_get_ns();
+		int ret = 0;
+
+		ret = bpf_msg_redirect_hash(msg, &HK_SOCK_MAP, &default_app_hash, flags);
+		delta = bpf_ktime_get_ns() - start_time;
+		bpf_printk("[HK-SM]: hk_kern redirects to hk_user: %ld ns.\n",
+			   delta);
+ 		
+ 		return ret;		
 	}
 }
-
+ 
 SEC("hooker_listener/0")
 int hooker_get_vtl_opt(struct xdp_md *ctx) {
 

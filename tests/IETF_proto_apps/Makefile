@@ -1,4 +1,4 @@
-TARGETS = dccp_server
+TARGETS = quic_server
 
 OBJS = ${TARGETS:=.o}
 

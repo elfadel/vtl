@@ -1,6 +1,6 @@
 BPF_TARGETS := egress_test_graft.o
 BPF_TARGETS += ingress_test_graft.o
-#BPF_TARGETS += hooker_test_progs.o
+BPF_TARGETS += hooker_test_progs.o
 
 INCLUDE_BPF = include
 INCLUDE_VTL = ../include
@@ -11,7 +11,9 @@ ARCH := $(subst x86_64,x86,$(shell arch))
 LLC ?= llc
 CLANG ?= clang
 
-TIME ?= time 
+# Activated time cmd if you want to compute
+# KTFs/Grafts compilation delay
+#TIME ?= time 
 
 CFLAGS ?= -I./$(INCLUDE_BPF) 
 CFLAGS += -I$(KERNEL_DIR)/
@@ -28,7 +30,7 @@ clean:
 	rm -f *~
 
 $(BPF_TARGETS): %.o: %.c Makefile $(EXTRA_DEPS)
-	$(TIME) $(CLANG) -S 					\
+	$(CLANG) -S 					\
 		-target bpf 				\
 		-D __BPF_TRACING__ 			\
 		$(CFLAGS) 				\
