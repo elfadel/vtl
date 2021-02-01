@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  
+<head>
+  <meta charset="UTF-8">
+  <title>Virtual Transport Layer (VTL)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#157878">
+  <link rel="stylesheet" href="/css/normalize.css">
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="/css/cayman.css">
+</head>
+
+<body>
+<section class="page-header">
+  <h1 class="project-name">Virtual Transport Layer (VTL)</h1>
+  <h2 class="project-tagline"></h2>
+  <a href="#what-is-vtl" class="btn">VTL</a>
+  <a href="#Hooker" class="btn">Hooker</a>
+  <a href="#publications" class="btn">Publications</a>
+  <a href="#artifact" class="btn">Artifact</a>
+  <a href="#contact" class="btn">Contact</a>
+</section>
+
+
+    <section class="main-content">
+      
+      <h1 id="what-is-vtl">What is VTL?</h1>
+
+<p><img src="/files/website/vtl.png" alt="VTL Arch." class="center-block" height="70%" width="70%" /></p>
+
+<p>Internet and its evolutions are fundamentally based on the unique TCP/IP model, whose primary protocol of the Transport layer (L4) is the TCP (and somewhat UDP). Despite its well-known limitations, TCP is still widely deployed and used on the Internet. Nearly all the literature's propositions to overcome TCP's limitations are <i>not deployed</i> in the mainstream operating systems (OS) and/or face <i>limited use</i> by the Internet's applications. This situation leads to the <i>ossification</i> or <i>sclerosis</i> of the Transport layer that is a significant barrier to the introduction of innovations in this layer of the Internet's TCP/IP architecture.</p>
+
+<p>To address this issue, we design and implement a <b>V</b>irtual <b>T</b>ransport <b>L</b>ayer (VTL) system able to <i>dynamically deploy</i> Transport protocols within the end-systems' OS. Further, to facilitate the use and stimulate the adoption of the proposed architecture (and the L4 protocols it deploys), we introduce the Hooker component. Hooker provides and mechanisms necessary to allow TCP- based applications to use <i>transparently</i> any Transport protocol other than TCP.</p>
+
+<p>VTL follows three main design principles: (1) the seamless support of legacy applications, i.e., legacy applications might consume Transport services without the need to rewrite their code; (2) the separation of protocol from aware- application, i.e., in line with the service-oriented approach [2], aware-application should request Transport services instead of invoking a specific protocol as it is the case in the standard socket API; and (3) the protocol modularization, i.e., the Transport layer data plane is organized in such a way to allow the implementation of reconfigurable protocols whose components might be dynamically instantiated and parameterized.</p>
+
+<!-- <p>See a <a href="https://conferences.sigcomm.org/hotnets/2017/dialogues/dialogue34.pdf">[dialogue between Luigi and Jennifer]</a> published at ACM HotNets 2017 about the motivation and use cases of our idea.</p> -->
+
+<h2 id="hk">Hooker</h2>
+
+<p><img src="/files/website/hk.png" alt="Hooker Design." class="img-responsive" height="70%" width="70%" /></p>
+
+<p>Hooker component’s goal is to provide support to legacy applications. The internal structure of Hooker is shown in Fig. 6. Hooker attaches to the root cgroupv2 [19]; therefore, by making use of the hierarchical model of cgroups, it processes every ingress and egress packets of all processes running on the end-system. Hooker maintains a map of type SOCKMAP that key is a structure containing the addressing information. This key is used by the msg redirector program to identify the right socket towards which the packet data must be forwarded to. Each time a connection is established or closed by one process, the map is updated by msg redirector thanks to a SOCKS_OPS bpf program section attached to cgroupv2.</p>
+
+<p>Every time an application process sends a data packet by calling into sendmsg() on a TCP socket, the SK_MSG bpf program running by msg redirector intercepts it, rewrites it if necessary thanks to the helper function bpf_msg_push_data(). Finally, to deliver the message either to the redirection socket or to the TCP socket, msg redirector program leverages bpf_msg_redirect_map() helper function. The redirection socket is created and maintained by Hooker userspace program which will use the recvmsg() operation to get the redirected data packet and send it to the VTL datapath through the protocol-agnostic API. At the reception, once the host network interface (NIC) receives data packet, the XDP program running by Hooker ingress intercepts the data packet and processes it by issuing the right verdict. The Hooker ingress program can drop the packet data (XDP_DROP), redirect it to the same NIC (XDP_TX) or, as currently done, pass it to the ingress VTL datapath (XDP_VTL_ACK) for further processing.</p>
+
+<h2 id="publications">Publications</h2>
+
+<!-- <p><strong>NetKernel: Making Network Stack Part of the Virutalized Infrastructure</strong> <a href="files/atc20-NetKernel.pdf">[Paper]</a> <a href="">[Talk]</a><br />
+<a href="https://zhixiong.org">Zhixiong Niu</a>, <a href="https://henryhxu.github.io">Hong Xu</a>, Peng Cheng, <a href="https://jacksonsq97.github.io">Qiang Su</a>, Yongqiang Xiong, Tao Wang, Dongsu Han, Keith Winstein<br />
+USENIX ATC 2020.</p>
+
+<p><strong>Network Stack as a Service in the Cloud</strong> <a href="https://dl.acm.org/authorize?N42004">[Paper]</a> <a href="https://dl.acm.org/ft_gateway.cfm?id=3152442&amp;ftid=1938275&amp;dwn=1">[Talk]</a>     <br />
+<a href="https://zhixiong.org">Zhixiong Niu</a>, <a href="https://henryhxu.github.io">Hong Xu</a>, Dongsu Han, Peng Cheng, Yongqiang Xiong, Guo Chen, Keith Winstein <br />
+ACM HotNets 2017.</p>
+
+<p>There is an OvS Orbit interview <a href="https://henryhxu.github.io">Henry</a> did with Ben Pfaff about NetKernel, which can be found <a href="https://ovsorbit.org/">here</a>.</p> -->
+
+<h2 id="artifact">Artifact</h2>
+
+<p><a href="">VTL</a></p>
+
+<h2 id="contact">Contact</h2>
+
+<!-- <p>Contact <a href="https://henryhxu.github.io">Henry</a>, <a href="https://zhixiong.org">Zhixiong</a> or <a href="https://jacksonsq97.github.io">Qiang</a> for any questions/suggestions.</p> -->
+
+
+      <footer class="site-footer">
+  <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a>.</span>
+</footer>
+
+
+    </section>
+
+  </body>
+</html>
