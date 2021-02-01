@@ -2,7 +2,7 @@
 layout: default
 ---
 
-# Header 1
+# What it is VTL?
 
 Internet and its evolutions are fundamentally based on the unique TCP/IP model, whose primary protocol of the Transport layer (L4) is the TCP (and somewhat UDP). Despite its well-known limitations, TCP is still widely deployed and used on the Internet. Nearly all the literature's propositions to overcome TCP's limitations are _not deployed_ in the mainstream operating systems (OS) and/or face _limited use_ by the Internet's applications. This situation leads to the _ossification_ or _sclerosis_ of the Transport layer that is a significant barrier to the introduction of innovations in this layer of the Internet's TCP/IP architecture.
 
