@@ -2,7 +2,7 @@
 layout: default
 ---
 
-# What it is VTL?
+# What it is VTL
 
 ![VTL](files/website/vtl.png)
 
