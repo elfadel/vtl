@@ -2,7 +2,7 @@
 layout: default
 ---
 
-# What it is VTL?
+# <a name="vtl" /> What it is VTL?
 
 ![VTL](files/website/vtl.png)
 
@@ -12,7 +12,7 @@ To address this issue, we design and implement a **V**irtual **T**ransport **L**
 
 VTL follows three main design principles: (1) the seamless support of legacy applications, i.e., legacy applications might consume Transport services without the need to rewrite their code; (2) the separation of protocol from aware- application, i.e., in line with the service-oriented approach [2], aware-application should request Transport services instead of invoking a specific protocol as it is the case in the standard socket API; and (3) the protocol modularization, i.e., the Transport layer data plane is organized in such a way to allow the implementation of reconfigurable protocols whose components might be dynamically instantiated and parameterized.
 
-# Hooker
+# <a name="hk" /> Hooker
 
 ![HK](files/website/hk.png)
 
