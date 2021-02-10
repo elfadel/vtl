@@ -2,11 +2,9 @@
 layout: default
 ---
 
-Test.
-
-# <a name="vtl" /> What is Virtual Transport Layer (VTL)?
-
 Virtual Transport Layer (VTL) is a protocol deployment management system aiming (1) to dynamically deploy protocol mechanisms/components, in order (2) to ensure optimal data moving between end-points.
+
+# <a name="vtl" /> VTL's Motivation and Architecture
 
 ![VTL](files/website/vtl.png)
 
