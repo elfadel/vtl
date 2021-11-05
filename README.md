@@ -13,7 +13,19 @@ applications. Suggestions are welcome.
 
 Install dependencies
 ---
-TBA.
+On Ubuntu 20.04 do
+
+``` shell
+sudo apt install libelf-dev pcap-dev libndpi-dev  gcc-multilib
+```
+
+Build
+---
+
+``` shell
+mkdir bin
+make
+```
 
 Test and run  Hooker:
 ---
