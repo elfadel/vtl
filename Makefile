@@ -35,13 +35,13 @@ CFLAGS += -g -Wall -Wextra -Wpedantic \
           -Wformat=2 -Wno-unused-parameter -Wshadow \
           -Wwrite-strings -Wstrict-prototypes -Wold-style-definition \
           -Wredundant-decls -Wnested-externs -Wmissing-include-dirs
-CFLAGS += -Wnull-dereference -Wjump-misses-init -Wlogical-op
+CFLAGS += -Wnull-dereference -Wjump-misses-init -Wlogical-op -fcommon
 CFLAGS += -O2
 CFLAGS += -I$(LIBBPF_DIR)/build/usr/include/ -g
 CFLAGS += -I$(ROOT_DIR)/include/headers/
 
 ARFLAGS = rcs
-LDFLAGS ?= -L$(LIBBPF_DIR)
+LDFLAGS = '-Wl,-L$(LIBBPF_DIR),--allow-multiple-definition'
 
 LIBS := -l:libbpf.a -lelf
 LIBS += -lpcap
