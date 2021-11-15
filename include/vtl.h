@@ -15,8 +15,8 @@
 #include <stdint.h> 			
 
 //deps
-#include "ndpi/ndpi_api.h"
-#include "ndpi/ndpi_main.h"
+#include "../nDPI/src/include/ndpi_api.h"
+#include "../nDPI/src/include/ndpi_main.h"
 
 #include "./common/xdp_user_helpers.h"
 #include "./common/xsk_user_helpers.h"
