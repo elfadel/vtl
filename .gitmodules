@@ -3,4 +3,4 @@
 	url = https://github.com/ntop/nDPI.git
 [submodule "deps/quicly"]
 	path = deps/quicly
-	url = https://github.com/h2o/quicly.git
+	url = https://github.com/elfadel/quicly.git

@@ -1,6 +1,6 @@
-TARGETS = legacy_server
+#TARGETS = legacy_server
 #TARGETS = legacy_client
-#TARGETS = vtl_quic_server
+TARGETS = vtl_quic_server
 
 OBJS = ${TARGETS:=.o}
 
@@ -8,7 +8,7 @@ LIBS_DIR = ../lib
 
 CC := gcc
 
-CFLAGS += -g -Wall -Wextra
+CFLAGS += -g -Wall -Wextra -I../deps
 
 LDFLAGS ?= -L$(LIBS_DIR)
 

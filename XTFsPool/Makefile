@@ -17,6 +17,7 @@ CLANG ?= clang
 
 CFLAGS ?= -I./$(INCLUDE_BPF) 
 CFLAGS += -I$(KERNEL_DIR)/
+CFLAGS += -I../deps/
 
 EXTRA_DEPS := $(INCLUDE_VTL)/vtl.h 
 

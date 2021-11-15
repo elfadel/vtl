@@ -13,6 +13,7 @@ CFLAGS += -Wnull-dereference -Wjump-misses-init -Wlogical-op
 CFLAGS += -O2
 CFLAGS += -I$(LIBBPF_DIR)/build/usr/include/ -g
 CFLAGS += -I$(ROOT_DIR)/include/headers/
+CFLAGS += -I$(ROOT_DIR)/deps
 
 LDFLAGS ?= -L$(LIBS_DIR)
 

@@ -6,7 +6,7 @@ LIBS_DIR = ../../lib
 
 CC := gcc
 
-CFLAGS += -g -Wall -Wextra
+CFLAGS += -g -Wall -Wextra -I../../deps
 
 LDFLAGS ?= -L$(LIBS_DIR)
 

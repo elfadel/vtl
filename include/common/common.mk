@@ -13,6 +13,7 @@ CFLAGS += -O2
 # Because of automatic dependency generation
 CFLAGS += -I$(LIBBPF_DIR)/build/usr/include/ -g
 CFLAGS += -I$(ROOT_DIR)/include/headers/
+CFLAGS += -I$(ROOT_DIR)/deps
 
 DEPFLAGS = -MT $@ -MD -MP -MF $(DEP_DIR)/$*.Td
 
