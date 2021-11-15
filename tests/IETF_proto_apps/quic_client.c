@@ -6,7 +6,7 @@
  * @version :		0.1
  * @brief :
 */
-#include "../../../../quicly/examples/vtl_quic.h"
+#include <quicly/examples/vtl_quic.h>
 
 #define MAX_PKT_SIZE            1024*1000
 

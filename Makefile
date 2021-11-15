@@ -39,6 +39,7 @@ CFLAGS += -Wnull-dereference -Wjump-misses-init -Wlogical-op -fcommon
 CFLAGS += -O2
 CFLAGS += -I$(LIBBPF_DIR)/build/usr/include/ -g
 CFLAGS += -I$(ROOT_DIR)/include/headers/
+CFLAGS += -I$(ROOT_DIR)/deps/
 
 ARFLAGS = rcs
 LDFLAGS = '-Wl,-L$(LIBBPF_DIR),--allow-multiple-definition'

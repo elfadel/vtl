@@ -8,7 +8,7 @@
 */
 
 #include "../include/vtl.h"
-#include "../../../quicly/examples/vtl_quic.h"
+#include <quicly/examples/vtl_quic.h>
 
 #include "hooker.h"
 
