@@ -1,3 +1,6 @@
-[submodule "nDPI"]
-	path = nDPI
+[submodule "deps/nDPI"]
+	path = deps/nDPI
 	url = https://github.com/ntop/nDPI.git
+[submodule "deps/quicly"]
+	path = deps/quicly
+	url = https://github.com/h2o/quicly.git
