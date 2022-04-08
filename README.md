@@ -11,18 +11,54 @@ applications. Suggestions are welcome.
 
 ![](files/vtl.png)
 
-Install dependencies
+Notice
 ---
-On Ubuntu 20.04 do
+VTL and its components have been tested on Ubuntu 20.04 LTS.
+
+Step 1: Compile and install VTL's customized linux kernel
+---
 
 ``` shell
-sudo apt install libelf-dev pcap-dev libndpi-dev  gcc-multilib
+git clone https://github.com/elfadel/vtl_kern.git linux-vtl
+cd linux-vtl
+cp -v /boot/config-$(uname -r) .config
+make olddefconfig
+scripts/config --disable SYSTEM_TRUSTED_KEYS
+make -j $(nproc)
+sudo make INSTALL_MOD_STRIP=1 modules_install
+sudo make headers_install
+sudo make install
+```
+Reboot, and make sure to boot on linux v5.3.5+.
+
+Step 2: Configure eBPF/XDP environment
+---
+
+``` shell
+sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
+LLVM_VERSION=14 # match the actual version of the clang installed on the system
+sudo update-alternatives --install /usr/bin/clang clang "/usr/bin/clang-$LLVM_VERSION" 100
+sudo update-alternatives --install /usr/bin/clang++ clang++ "/usr/bin/clang++-$LLVM_VERSION" 100
+sudo update-alternatives --install /usr/bin/llc llc "/usr/bin/llc-$LLVM_VERSION" 100
+sudo update-alternatives --install /usr/bin/llvm-mc llvm-mc "/usr/bin/llvm-mc-$LLVM_VERSION" 50
 ```
 
-Build
+Step 3: Compile and build VTL
 ---
 
 ``` shell
+git clone --recurse-submodules https://github.com/elfadel/vtl.git
+sudo apt install libpcap-dev gcc-multilib
+
+# configure nDPI deps
+cd deps/nDPI
+sudo apt ins	tall -y autoconf libtool libjson-c-dev
+./autogen.sh
+./configure
+make
+cd ../..
+
+# compile VTL
 mkdir bin
 make
 ```
@@ -36,10 +72,10 @@ or a set of TCP applications, and _**sk_msg**_, to redirect the monitored applic
 
 \> First: build and launch (deploy) kernel prog part:
 ```
-$ make
-$ cd bin
-$ sudo ./vtl_ui
-Follow the instructions and make choices.
+cd bin
+sudo ./vtl_ui
+
+# Follow the instructions and make choices.
 ```
 
 \> Second: start user daemon
