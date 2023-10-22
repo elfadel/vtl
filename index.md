@@ -31,4 +31,4 @@ Every time an application process sends a data packet by calling into sendmsg() 
 
 # <a name="artifact" /> Artifact
 
-The source code of this project is available on [GitHub](https://github.com/elfadel/vtl).
+The source code of this project is available on [GitHub](https://github.com/elfadel/vtl)
